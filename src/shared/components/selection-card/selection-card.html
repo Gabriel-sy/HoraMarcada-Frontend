@@ -1,0 +1,15 @@
+<div
+  (click)="onSelect()"
+  [class]="'flex justify-between items-center p-5 border rounded-lg cursor-pointer transition-all duration-200 ' + 
+           (selected() ? 'border-text-primary bg-accent-light' : 'border-border-light hover:border-text-primary')">
+  <div class="flex-1">
+    <ng-content select="[card-content]"></ng-content>
+  </div>
+  <div
+    class="w-5 h-5 rounded-full border flex items-center justify-center transition-all duration-200"
+    [class]="selected() ? 'border-text-primary' : 'border-border-light'">
+    @if (selected()) {
+      <div class="w-4.5 h-4.5 rounded-full bg-accent animate-scale-up"></div>
+    }
+  </div>
+</div>

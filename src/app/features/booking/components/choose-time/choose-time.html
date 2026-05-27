@@ -1,0 +1,54 @@
+<div class="w-full flex-1 flex flex-col">
+  <h2 class="text-xl font-bold mb-6 text-text-primary">Escolha a data e horário</h2>
+
+  <div class="flex overflow-x-auto gap-3 py-2 px-1 scrollbar-none snap-x snap-mandatory mb-6">
+    @for (option of dateOptions(); track option.dateString) {
+      <button
+        type="button"
+        (click)="selectDate(option)"
+        [class]="'snap-start flex-shrink-0 flex flex-col items-center justify-center min-w-[72px] py-4 px-3 border rounded-lg cursor-pointer transition-all duration-200 ' +
+                 (selectedDateString() === option.dateString ? 'border-text-primary bg-accent-light' : 'border-border-light hover:border-text-primary bg-white')">
+        <span class="text-[10px] font-bold tracking-wider uppercase" [class]="selectedDateString() === option.dateString ? 'text-text-primary' : 'text-text-muted'">
+          {{ option.dayName }}
+        </span>
+        <span class="text-xl font-black mt-1.5 text-text-primary">
+          {{ option.dayNumber }}
+        </span>
+        <span class="text-[10px] uppercase font-bold tracking-widest mt-1 text-text-muted">
+          {{ option.monthName }}
+        </span>
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex-1 flex items-center justify-center py-12">
+      <div class="w-6 h-6 border-2 border-text-primary border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  } @else if (error()) {
+    <div class="p-6 text-center border border-border-light rounded-lg">
+      <p class="text-text-secondary mb-4">{{ error() }}</p>
+      <button (click)="retryLoad()" class="px-4 py-2 border border-text-primary text-text-primary text-sm font-semibold rounded-md hover:bg-gray-50 cursor-pointer">
+        Tentar novamente
+      </button>
+    </div>
+  } @else {
+    @if (slots().length > 0) {
+      <div class="grid grid-cols-4 gap-2">
+        @for (slot of slots(); track slot) {
+          <button
+            type="button"
+            (click)="selectTime(slot)"
+            [class]="'py-3.5 border text-sm font-bold rounded-lg text-center cursor-pointer transition-all duration-200 ' +
+                     (selectedTime() === slot ? 'border-text-primary bg-accent-light text-text-primary' : 'border-border-light hover:border-text-primary bg-white text-text-primary')">
+            {{ formatTime(slot) }}
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="p-12 text-center text-text-secondary border border-border-light rounded-lg">
+        Não há horários disponíveis para este dia.
+      </div>
+    }
+  }
+</div>

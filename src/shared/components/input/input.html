@@ -1,0 +1,16 @@
+<div class="relative w-full">
+  <input
+    [id]="id()"
+    [type]="type()"
+    [placeholder]="placeholder()"
+    [value]="value()"
+    [disabled]="disabled()"
+    (input)="onInputChange($event)"
+    (blur)="onTouch()"
+    class="peer w-full pt-6 pb-2 px-3 border border-border-light rounded-md text-text-primary outline-none focus:border-text-primary focus:ring-2 focus:ring-accent-light transition-all disabled:opacity-50 disabled:bg-gray-100" />
+  <label
+    [for]="id()"
+    class="absolute left-3 top-4 text-text-secondary text-base transition-all duration-200 pointer-events-none peer-focus:text-xs peer-focus:-translate-y-2.5 peer-focus:text-text-primary peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:-translate-y-2.5">
+    {{ label() }}
+  </label>
+</div>

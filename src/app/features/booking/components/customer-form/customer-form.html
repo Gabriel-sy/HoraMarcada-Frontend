@@ -1,0 +1,79 @@
+<div class="w-full flex-1 flex flex-col">
+  <h2 class="text-xl font-bold mb-6 text-text-primary">Confirme seus dados</h2>
+
+  <div class="flex flex-col gap-4 p-5 border border-border-light rounded-lg bg-gray-50 mb-8 text-sm">
+    <h3 class="font-bold text-text-primary uppercase tracking-wider text-xs">Resumo do Agendamento</h3>
+    <div class="flex flex-col gap-2">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="font-bold text-text-primary text-base">{{ summary().serviceName }}</p>
+          <p class="text-text-secondary text-xs mt-0.5">Profissional: {{ summary().professionalName }}</p>
+        </div>
+        @if (summary().servicePrice) {
+          <span class="font-bold text-text-primary text-base">R$ {{ summary().servicePrice }}</span>
+        }
+      </div>
+      <div class="border-t border-border-light my-2"></div>
+      <div class="flex items-center text-text-primary gap-2">
+        <svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span class="font-semibold text-sm">{{ summary().date }} às {{ summary().time }}</span>
+      </div>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+    <div class="flex flex-col gap-1.5">
+      <app-input
+        id="name"
+        formControlName="name"
+        label="Nome Completo"
+        placeholder=" ">
+      </app-input>
+      @if (form.get('name')?.touched && form.get('name')?.invalid) {
+        <span class="text-xs text-red-600 font-medium px-1">O nome completo é obrigatório.</span>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <app-input
+        id="whatsapp"
+        formControlName="whatsapp"
+        label="WhatsApp"
+        placeholder=" ">
+      </app-input>
+      @if (form.get('whatsapp')?.touched && form.get('whatsapp')?.invalid) {
+        <span class="text-xs text-red-600 font-medium px-1">Insira um número de WhatsApp válido com DDD (ex: (11) 99999-9999).</span>
+      } @else {
+        <span class="text-[10px] text-text-secondary px-1">Formato com DDD e número (ex: (11) 99999-9999).</span>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <app-input
+        id="email"
+        formControlName="email"
+        type="email"
+        label="E-mail"
+        placeholder=" ">
+      </app-input>
+      @if (form.get('email')?.touched && form.get('email')?.invalid) {
+        <span class="text-xs text-red-600 font-medium px-1">Insira um endereço de e-mail válido.</span>
+      }
+    </div>
+
+    <div class="mt-4">
+      <app-button
+        type="submit"
+        [disabled]="form.invalid || loading()"
+        variant="accent">
+        @if (loading()) {
+          <div class="w-5 h-5 border-2 border-text-primary border-t-transparent rounded-full animate-spin"></div>
+        } @else {
+          Confirmar Agendamento
+        }
+      </app-button>
+    </div>
+  </form>
+</div>

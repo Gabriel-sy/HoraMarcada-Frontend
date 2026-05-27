@@ -1,0 +1,118 @@
+<div class="w-full min-h-screen flex flex-col bg-white text-text-primary font-sans">
+  @if (loading()) {
+    <div class="flex-1 flex items-center justify-center">
+      <div class="w-6 h-6 border-2 border-text-primary border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  } @else if (error()) {
+    <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+      <p class="text-text-secondary mb-4">{{ error() }}</p>
+    </div>
+  } @else {
+    @if (!bookingSuccess()) {
+      <header class="w-full border-b border-border-light min-h-[64px] flex justify-center items-center">
+        <div class="w-full max-w-2xl px-6 flex justify-between items-center">
+          @if (currentStep() > 1) {
+            <button (click)="goBack()" class="flex items-center text-sm font-medium text-text-secondary hover:text-text-primary transition-colors cursor-pointer">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+              </svg>
+              Voltar
+            </button>
+          } @else {
+            <div></div>
+          }
+          <span class="text-xs font-semibold tracking-wider uppercase text-text-muted">Passo {{ currentStep() }} de 4</span>
+        </div>
+      </header>
+    }
+
+    <main class="relative flex-1 w-full max-w-2xl mx-auto px-6 py-8 overflow-hidden flex flex-col">
+      @if (bookingSuccess()) {
+        <div class="flex-1 flex flex-col justify-center items-center text-center max-w-md mx-auto py-12 animate-scale-up">
+          <div class="w-16 h-16 rounded-full bg-accent-light flex items-center justify-center text-text-primary mb-6">
+            <svg class="w-8 h-8 text-[#a3d271]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+
+          <h2 class="text-2xl font-black text-text-primary mb-2">Agendamento Confirmado!</h2>
+          <p class="text-text-secondary text-sm mb-8">Seu horário foi reservado com sucesso. Enviamos os detalhes de confirmação para você.</p>
+
+          <div class="w-full text-left p-6 border border-border-light rounded-lg  flex flex-col gap-4 mb-8">
+            <div>
+              <span class="text-[10px] uppercase font-bold tracking-wider text-text-muted">Serviço</span>
+              <p class="font-bold text-text-primary text-base mt-0.5">{{ createdAppointment()?.service?.name || selectedService()?.name }}</p>
+            </div>
+
+            <div>
+              <span class="text-[10px] uppercase font-bold tracking-wider text-text-muted">Profissional</span>
+              <p class="font-bold text-text-primary text-sm mt-0.5">{{ createdAppointment()?.professional?.name || assignedProfessional()?.name || selectedProfessional()?.name }}</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="text-[10px] uppercase font-bold tracking-wider text-text-muted">Data</span>
+                <p class="font-bold text-text-primary text-sm mt-0.5">{{ getBookingSummary().date }}</p>
+              </div>
+              <div>
+                <span class="text-[10px] uppercase font-bold tracking-wider text-text-muted">Horário</span>
+                <p class="font-bold text-text-primary text-sm mt-0.5">{{ getBookingSummary().time }}</p>
+              </div>
+            </div>
+
+            @if (store()?.address) {
+              <div>
+                <span class="text-[10px] uppercase font-bold tracking-wider text-text-muted">Localização</span>
+                <p class="font-bold text-text-primary text-xs mt-0.5">{{ store()?.address }}</p>
+              </div>
+            }
+          </div>
+
+          <button (click)="resetFlow()" class="w-full py-4 px-6 bg-text-primary text-white font-semibold rounded-md text-sm hover:bg-[#1a1a1a] active:scale-[0.98] transition-all cursor-pointer">
+            Novo Agendamento
+          </button>
+        </div>
+      } @else {
+        <div class="w-full flex-1 flex flex-col" [class.hidden]="currentStep() !== 1" [ngClass]="transitionClass()">
+          <app-choose-service 
+            [storeId]="store()!.id" 
+            [selectedServiceId]="selectedService()?.id" 
+            (selected)="onServiceSelected($event)">
+          </app-choose-service>
+        </div>
+
+        <div class="w-full flex-1 flex flex-col" [class.hidden]="currentStep() !== 2" [ngClass]="transitionClass()">
+          <app-choose-professional 
+            [storeId]="store()!.id" 
+            [serviceId]="selectedService()?.id ?? null" 
+            [selectedProfessionalId]="selectedProfessional()?.id" 
+            (selected)="onProfessionalSelected($event)">
+          </app-choose-professional>
+        </div>
+
+        <div class="w-full flex-1 flex flex-col" [class.hidden]="currentStep() !== 3" [ngClass]="transitionClass()">
+          <app-choose-time
+            [storeId]="store()!.id"
+            [serviceId]="selectedService()?.id ?? null"
+            [selectedProfessional]="selectedProfessional()"
+            [selectedTime]="selectedTime()"
+            (selected)="onTimeSelected($event)">
+          </app-choose-time>
+        </div>
+
+        <div class="w-full flex-1 flex flex-col" [class.hidden]="currentStep() !== 4" [ngClass]="transitionClass()">
+          @if (formError()) {
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium">
+              {{ formError() }}
+            </div>
+          }
+          <app-customer-form
+            [summary]="getBookingSummary()"
+            [loading]="submitting()"
+            (submitted)="onFormSubmitted($event)">
+          </app-customer-form>
+        </div>
+      }
+    </main>
+  }
+</div>

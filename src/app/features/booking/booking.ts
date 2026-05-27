@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BookingApiService } from './services/booking-api.service';
 import { Store } from './models/store.model';
@@ -7,6 +7,7 @@ import { ChooseServiceComponent } from './components/choose-service/choose-servi
 import { ChooseProfessionalComponent } from './components/choose-professional/choose-professional';
 import { ChooseTimeComponent } from './components/choose-time/choose-time';
 import { CustomerFormComponent } from './components/customer-form/customer-form';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-booking',
@@ -18,11 +19,22 @@ import { CustomerFormComponent } from './components/customer-form/customer-form'
 export class BookingComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly apiService = inject(BookingApiService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   slug = signal<string>('');
   store = signal<Store | null>(null);
   loading = signal<boolean>(true);
   error = signal<string | null>(null);
+
+  mapUrl = computed(() => {
+    const s = this.store();
+    if (s?.addressLat && s?.addressLng) {
+      return this.sanitizer.bypassSecurityTrustResourceUrl(
+        `https://www.google.com/maps?q=${s.addressLat},${s.addressLng}&z=15&output=embed`
+      );
+    }
+    return null;
+  });
 
   currentStep = signal<number>(1);
   isTransitioningOut = signal<boolean>(false);

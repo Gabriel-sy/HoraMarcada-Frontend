@@ -1,6 +1,6 @@
-import { Component, inject, input, output, signal, effect } from '@angular/core';
+import { Component, inject, input, output, signal, effect, OnDestroy } from '@angular/core';
 import { BookingApiService } from '../../services/booking-api.service';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 interface DateOption {
@@ -17,8 +17,9 @@ interface DateOption {
   templateUrl: './choose-time.html',
   styleUrl: './choose-time.css'
 })
-export class ChooseTimeComponent {
+export class ChooseTimeComponent implements OnDestroy {
   private readonly apiService = inject(BookingApiService);
+  private currentSubscription?: Subscription;
 
   storeId = input.required<string>();
   serviceId = input<string | null>(null);
@@ -32,6 +33,7 @@ export class ChooseTimeComponent {
   slotsData = signal<{ slot: string, professionalId: string, professionalName: string }[]>([]);
   loading = signal<boolean>(true);
   error = signal<string | null>(null);
+  showLeftArrow = signal<boolean>(false);
 
   constructor() {
     const dates = this.generateDateOptions();
@@ -79,6 +81,28 @@ export class ChooseTimeComponent {
         professionalName: data.professionalName
       });
     }
+  }
+
+  scrollCarousel(container: HTMLDivElement, direction: number): void {
+    const firstChild = container.firstElementChild as HTMLElement;
+    if (firstChild) {
+      const itemWidth = firstChild.offsetWidth;
+      const gap = 12;
+      const scrollAmount = (itemWidth + gap) * direction;
+      container.scrollBy({
+        left: scrollAmount,
+        behavior: 'smooth'
+      });
+    } else {
+      container.scrollBy({
+        left: 84 * direction,
+        behavior: 'smooth'
+      });
+    }
+  }
+
+  onScroll(container: HTMLDivElement): void {
+    this.showLeftArrow.set(container.scrollLeft > 5);
   }
 
   formatTime(dateTimeStr: string): string {
@@ -132,14 +156,25 @@ export class ChooseTimeComponent {
     return options;
   }
 
+  ngOnDestroy(): void {
+    if (this.currentSubscription) {
+      this.currentSubscription.unsubscribe();
+    }
+  }
+
   private loadSlots(storeId: string, serviceId: string, date: string, professional: any): void {
+    if (this.currentSubscription) {
+      this.currentSubscription.unsubscribe();
+    }
+    this.currentSubscription = new Subscription();
+
     this.loading.set(true);
     this.error.set(null);
     this.slots.set([]);
     this.slotsData.set([]);
 
     if (professional && professional.id !== 'any') {
-      this.apiService.getAvailableSlots(storeId, serviceId, date, professional.id).subscribe({
+      const s = this.apiService.getAvailableSlots(storeId, serviceId, date, professional.id).subscribe({
         next: (res) => {
           const mapped = (res || []).map(slot => ({
             slot,
@@ -155,8 +190,9 @@ export class ChooseTimeComponent {
           this.loading.set(false);
         }
       });
+      this.currentSubscription.add(s);
     } else {
-      this.apiService.getServiceProfessionals(storeId, serviceId).subscribe({
+      const s = this.apiService.getServiceProfessionals(storeId, serviceId).subscribe({
         next: (professionals) => {
           if (!professionals || professionals.length === 0) {
             this.loading.set(false);
@@ -173,7 +209,7 @@ export class ChooseTimeComponent {
             )
           );
 
-          forkJoin(requests).subscribe({
+          const s2 = forkJoin(requests).subscribe({
             next: (results) => {
               const mergedMap = new Map<string, { slot: string, professionalId: string, professionalName: string }>();
               for (const resList of results) {
@@ -193,12 +229,14 @@ export class ChooseTimeComponent {
               this.loading.set(false);
             }
           });
+          this.currentSubscription?.add(s2);
         },
         error: () => {
           this.error.set('Não foi possível carregar os horários. Tente novamente.');
           this.loading.set(false);
         }
       });
+      this.currentSubscription.add(s);
     }
   }
 }

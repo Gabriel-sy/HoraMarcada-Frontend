@@ -1,24 +1,48 @@
 <div class="w-full flex-1 flex flex-col">
   <h2 class="text-xl font-bold mb-6 text-text-primary">Escolha a data e horário</h2>
 
-  <div class="flex overflow-x-auto gap-3 py-2 px-1 scrollbar-none snap-x snap-mandatory mb-6">
-    @for (option of dateOptions(); track option.dateString) {
+  <div class="relative w-full flex items-center mb-6">
+    @if (showLeftArrow()) {
       <button
         type="button"
-        (click)="selectDate(option)"
-        [class]="'snap-start flex-shrink-0 flex flex-col items-center justify-center min-w-[72px] py-4 px-3 border rounded-lg cursor-pointer transition-all duration-200 ' +
-                 (selectedDateString() === option.dateString ? 'border-text-primary bg-accent-light' : 'border-border-light hover:border-text-primary bg-white')">
-        <span class="text-[10px] font-bold tracking-wider uppercase" [class]="selectedDateString() === option.dateString ? 'text-text-primary' : 'text-text-muted'">
-          {{ option.dayName }}
-        </span>
-        <span class="text-xl font-black mt-1.5 text-text-primary">
-          {{ option.dayNumber }}
-        </span>
-        <span class="text-[10px] uppercase font-bold tracking-widest mt-1 text-text-muted">
-          {{ option.monthName }}
-        </span>
+        (click)="scrollCarousel(carouselContainer, -1)"
+        class="hidden md:flex absolute left-0 z-10 items-center justify-center w-8 h-8 rounded-full bg-white border border-border-light text-text-primary hover:bg-gray-50 active:scale-95 shadow-sm transition-all -ml-4 cursor-pointer"
+        aria-label="Anterior">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+        </svg>
       </button>
     }
+
+    <div #carouselContainer (scroll)="onScroll(carouselContainer)" class="flex-1 flex overflow-x-auto gap-3 py-2 px-1 scrollbar-none snap-x snap-mandatory scroll-smooth">
+      @for (option of dateOptions(); track option.dateString) {
+        <button
+          type="button"
+          (click)="selectDate(option)"
+          [class]="'snap-start flex-shrink-0 flex flex-col items-center justify-center min-w-[72px] py-4 px-3 border rounded-lg cursor-pointer transition-all duration-200 ' +
+                   (selectedDateString() === option.dateString ? 'border-text-primary bg-accent-light' : 'border-border-light hover:border-text-primary bg-white')">
+          <span class="text-[10px] font-bold tracking-wider uppercase" [class]="selectedDateString() === option.dateString ? 'text-text-primary' : 'text-text-muted'">
+            {{ option.dayName }}
+          </span>
+          <span class="text-xl font-black mt-1.5 text-text-primary">
+            {{ option.dayNumber }}
+          </span>
+          <span class="text-[10px] uppercase font-bold tracking-widest mt-1 text-text-muted">
+            {{ option.monthName }}
+          </span>
+        </button>
+      }
+    </div>
+
+    <button
+      type="button"
+      (click)="scrollCarousel(carouselContainer, 1)"
+      class="hidden md:flex absolute right-0 z-10 items-center justify-center w-8 h-8 rounded-full bg-white border border-border-light text-text-primary hover:bg-gray-50 active:scale-95 shadow-sm transition-all -mr-4 cursor-pointer"
+      aria-label="Próximo">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+      </svg>
+    </button>
   </div>
 
   @if (loading()) {

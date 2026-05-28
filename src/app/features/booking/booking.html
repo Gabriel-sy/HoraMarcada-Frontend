@@ -26,7 +26,7 @@
       </header>
     }
 
-    <main class="relative flex-1 w-full max-w-2xl mx-auto px-6 pt-8 overflow-hidden flex flex-col"
+    <main class="relative flex-1 w-full max-w-2xl mx-auto px-6 pt-4 overflow-hidden flex flex-col"
           [class.pb-8]="currentStep() !== 4 || bookingSuccess()"
           [class.pb-2]="currentStep() === 4 && !bookingSuccess()">
       @if (bookingSuccess()) {
@@ -90,6 +90,9 @@
         </div>
       } @else {
         <div class="w-full flex-1 flex flex-col" [class.hidden]="currentStep() !== 1" [ngClass]="transitionClass()">
+          <div class="mb-1">
+            <span class="store-brand-name">{{ store()?.name }}</span>
+          </div>
           <app-choose-service 
             [storeId]="store()!.id" 
             [selectedServiceId]="selectedService()?.id" 
@@ -98,6 +101,9 @@
         </div>
 
         <div class="w-full flex-1 flex flex-col" [class.hidden]="currentStep() !== 2" [ngClass]="transitionClass()">
+          <div class="mb-1">
+            <span class="store-brand-name">{{ store()?.name }}</span>
+          </div>
           <app-choose-professional 
             [storeId]="store()!.id" 
             [serviceId]="selectedService()?.id ?? null" 
@@ -107,6 +113,9 @@
         </div>
 
         <div class="w-full flex-1 flex flex-col" [class.hidden]="currentStep() !== 3" [ngClass]="transitionClass()">
+          <div class="mb-1">
+            <span class="store-brand-name">{{ store()?.name }}</span>
+          </div>
           <app-choose-time
             [storeId]="store()!.id"
             [serviceId]="selectedService()?.id ?? null"
@@ -117,6 +126,9 @@
         </div>
 
         <div class="w-full flex-1 flex flex-col" [class.hidden]="currentStep() !== 4" [ngClass]="transitionClass()">
+          <div class="mb-1">
+            <span class="store-brand-name">{{ store()?.name }}</span>
+          </div>
           @if (formError()) {
             <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium">
               {{ formError() }}

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { Store } from '../../booking/models/store.model';
 import { Professional } from '../../booking/models/professional.model';
 import { Appointment } from '../../booking/models/appointment.model';
+import { Service } from '../../booking/models/service.model';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -41,5 +42,23 @@ export class AdminApiService {
 
   cancelAppointment(appointmentId: string, storeId: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/appointments/${appointmentId}/cancel`, { storeId });
+  }
+
+  getStoreServices(storeId: string, activeOnly = false): Observable<Service[]> {
+    return this.http.get<Service[]>(`${this.apiUrl}/stores/${storeId}/services`, {
+      params: new HttpParams().set('activeOnly', activeOnly.toString())
+    });
+  }
+
+  addService(storeId: string, input: { name: string; durationMinutes: number; price?: number | null; professionalIds: string[] }): Observable<Service> {
+    return this.http.post<Service>(`${this.apiUrl}/stores/${storeId}/services`, input);
+  }
+
+  updateService(storeId: string, serviceId: string, input: { name: string; durationMinutes: number; price?: number | null; active: boolean; professionalIds: string[] }): Observable<Service> {
+    return this.http.put<Service>(`${this.apiUrl}/stores/${storeId}/services/${serviceId}`, input);
+  }
+
+  deleteService(storeId: string, serviceId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/stores/${storeId}/services/${serviceId}`);
   }
 }

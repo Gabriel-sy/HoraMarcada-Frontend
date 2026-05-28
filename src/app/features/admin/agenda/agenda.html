@@ -98,7 +98,7 @@
         </div>
 
         <div class="w-auto md:w-[110px] shrink-0 flex-1 md:flex-initial">
-          <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full" [ngClass]="getAppointmentStatusClass(getEffectiveStatus(appt))">
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold py-1 rounded-full" [ngClass]="getAppointmentStatusClass(getEffectiveStatus(appt))">
             <span class="w-1.5 h-1.5 rounded-full inline-block" [ngClass]="{
               'bg-accent': getEffectiveStatus(appt) === 0,
               'bg-red-500': getEffectiveStatus(appt) === 1,

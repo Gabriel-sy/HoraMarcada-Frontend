@@ -13,6 +13,10 @@ export const routes: Routes = [
       {
         path: 'agenda',
         loadComponent: () => import('./features/admin/agenda/agenda').then(m => m.AgendaComponent)
+      },
+      {
+        path: 'servicos',
+        loadComponent: () => import('./features/admin/services-mgmt/services-mgmt').then(m => m.ServicesMgmtComponent)
       }
     ]
   },

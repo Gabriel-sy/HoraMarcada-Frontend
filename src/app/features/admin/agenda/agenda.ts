@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { NgClass, NgIf, NgFor, DatePipe, CommonModule } from '@angular/common';
+import { NgClass, CommonModule, DatePipe } from '@angular/common';
 import { AuthMockService } from '../../../core/auth/auth-mock.service';
 import { AdminApiService } from '../services/admin-api.service';
 import { BookingApiService } from '../../booking/services/booking-api.service';
@@ -11,7 +11,7 @@ import { AppointmentStatus } from '../../booking/models/appointment-status.enum'
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [CommonModule, NgClass, NgIf, NgFor],
+  imports: [CommonModule, NgClass],
   templateUrl: './agenda.html',
   styleUrl: './agenda.css',
   providers: [DatePipe]
@@ -27,6 +27,10 @@ export class AgendaComponent implements OnInit {
   readonly appointments = signal<Appointment[]>([]);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
+  readonly isCancelModalOpen = signal<boolean>(false);
+  readonly appointmentToCancel = signal<Appointment | null>(null);
+  readonly cancelError = signal<string | null>(null);
+  readonly canceling = signal<boolean>(false);
 
   readonly selectedDate = signal<Date>(this.normalizeDate(new Date()));
   readonly selectedProfessionalId = signal<string | null>(null);
@@ -173,22 +177,47 @@ export class AgendaComponent implements OnInit {
       date.getFullYear() === today.getFullYear();
   }
 
-  cancelAppointment(id: string): void {
-    const sId = this.storeId();
-    if (!sId) return;
+  cancelAppointment(appt: Appointment): void {
+    this.appointmentToCancel.set(appt);
+    this.cancelError.set(null);
+    this.isCancelModalOpen.set(true);
+  }
 
-    if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
-      this.loading.set(true);
-      this.adminApiService.cancelAppointment(id, sId).subscribe({
-        next: () => {
-          this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId());
-        },
-        error: () => {
-          alert('Erro ao cancelar agendamento.');
-          this.loading.set(false);
-        }
-      });
-    }
+  closeCancelModal(): void {
+    this.isCancelModalOpen.set(false);
+    this.appointmentToCancel.set(null);
+    this.cancelError.set(null);
+  }
+
+  confirmCancel(): void {
+    const appt = this.appointmentToCancel();
+    const sId = this.storeId();
+    if (!appt || !sId) return;
+
+    this.canceling.set(true);
+    this.cancelError.set(null);
+
+    this.adminApiService.cancelAppointment(appt.id, sId).subscribe({
+      next: () => {
+        this.canceling.set(false);
+        this.closeCancelModal();
+        this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId());
+      },
+      error: () => {
+        this.cancelError.set('Erro ao cancelar agendamento. Por favor, tente novamente.');
+        this.canceling.set(false);
+      }
+    });
+  }
+
+  getService(svcId: string): Service | undefined {
+    return this.services().find(s => s.id === svcId);
+  }
+
+  formatPrice(priceValue: any): string {
+    if (priceValue === null || priceValue === undefined) return 'Sob consulta';
+    const amount = typeof priceValue === 'object' ? priceValue.amount : priceValue;
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
   }
 
   getEffectiveStatus(appt: Appointment): AppointmentStatus {

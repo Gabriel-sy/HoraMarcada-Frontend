@@ -1,6 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthMockService } from '../../core/auth/auth-mock.service';
 import { AdminApiService } from './services/admin-api.service';
@@ -9,7 +8,7 @@ import { Store } from '../booking/models/store.model';
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgIf, FormsModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule],
   templateUrl: './admin-layout.html',
   styleUrl: './admin-layout.css'
 })

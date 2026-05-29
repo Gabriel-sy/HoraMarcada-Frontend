@@ -67,8 +67,14 @@ export class ChooseTimeComponent implements OnDestroy {
     }
   }
 
-  selectDate(option: DateOption): void {
+  selectDate(option: DateOption, smooth = true): void {
     this.selectedDateString.set(option.dateString);
+    setTimeout(() => {
+      const el = document.getElementById(`date-pill-${option.dateString}`);
+      if (el) {
+        el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'nearest', inline: 'center' });
+      }
+    }, 50);
   }
 
   selectTime(slot: string): void {

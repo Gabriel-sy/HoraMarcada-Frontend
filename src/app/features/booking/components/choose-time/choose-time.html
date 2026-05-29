@@ -14,12 +14,13 @@
       </button>
     }
 
-    <div #carouselContainer (scroll)="onScroll(carouselContainer)" class="flex-1 flex overflow-x-auto gap-3 py-2 px-1 scrollbar-none snap-x snap-mandatory scroll-smooth">
+    <div #carouselContainer (scroll)="onScroll(carouselContainer)" class="flex-1 flex overflow-x-auto gap-3 py-2 px-1 scrollbar-none scroll-smooth">
       @for (option of dateOptions(); track option.dateString) {
         <button
           type="button"
           (click)="selectDate(option)"
-          [class]="'snap-start flex-shrink-0 flex flex-col items-center justify-center min-w-[72px] py-4 px-3 border rounded-lg cursor-pointer transition-all duration-200 ' +
+          [id]="'date-pill-' + option.dateString"
+          [class]="'flex-shrink-0 flex flex-col items-center justify-center min-w-[72px] py-4 px-3 border rounded-lg cursor-pointer transition-all duration-200 ' +
                    (selectedDateString() === option.dateString ? 'border-text-primary bg-accent-light' : 'border-border-light hover:border-text-primary bg-white')">
           <span class="text-[10px] font-bold tracking-wider uppercase" [class]="selectedDateString() === option.dateString ? 'text-text-primary' : 'text-text-muted'">
             {{ option.dayName }}

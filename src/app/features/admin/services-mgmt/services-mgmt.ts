@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule, NgClass, NgIf, NgFor } from '@angular/common';
+import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthMockService } from '../../../core/auth/auth-mock.service';
 import { AdminApiService } from '../services/admin-api.service';
@@ -9,7 +9,7 @@ import { Professional } from '../../booking/models/professional.model';
 @Component({
   selector: 'app-services-mgmt',
   standalone: true,
-  imports: [CommonModule, NgClass, NgIf, NgFor, FormsModule],
+  imports: [CommonModule, NgClass, FormsModule],
   templateUrl: './services-mgmt.html',
   styleUrl: './services-mgmt.css'
 })

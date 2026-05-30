@@ -5,6 +5,7 @@ import { Store } from '../../booking/models/store.model';
 import { Professional } from '../../booking/models/professional.model';
 import { Appointment } from '../../booking/models/appointment.model';
 import { Service } from '../../booking/models/service.model';
+import { TimeBlock } from '../../booking/models/time-block.model';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -60,5 +61,32 @@ export class AdminApiService {
 
   deleteService(storeId: string, serviceId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/stores/${storeId}/services/${serviceId}`);
+  }
+
+  addProfessional(storeId: string, input: any): Observable<Professional> {
+    return this.http.post<Professional>(`${this.apiUrl}/stores/${storeId}/professionals`, input);
+  }
+
+  updateProfessional(storeId: string, professionalId: string, input: any): Observable<Professional> {
+    return this.http.put<Professional>(`${this.apiUrl}/stores/${storeId}/professionals/${professionalId}`, input);
+  }
+
+  deactivateProfessional(storeId: string, professionalId: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/stores/${storeId}/professionals/${professionalId}/deactivate`, {});
+  }
+
+  listTimeBlocks(storeId: string, professionalId: string, start: string, end: string): Observable<TimeBlock[]> {
+    const params = new HttpParams()
+      .set('start', start)
+      .set('end', end);
+    return this.http.get<TimeBlock[]>(`${this.apiUrl}/stores/${storeId}/professionals/${professionalId}/blocks`, { params });
+  }
+
+  createTimeBlock(storeId: string, professionalId: string, input: { startTime: string; endTime: string }): Observable<TimeBlock> {
+    return this.http.post<TimeBlock>(`${this.apiUrl}/stores/${storeId}/professionals/${professionalId}/blocks`, input);
+  }
+
+  deleteTimeBlock(storeId: string, professionalId: string, blockId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/stores/${storeId}/professionals/${professionalId}/blocks/${blockId}`);
   }
 }

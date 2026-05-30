@@ -1,17 +1,21 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { NgClass, CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { AuthMockService } from '../../../core/auth/auth-mock.service';
 import { AdminApiService } from '../services/admin-api.service';
 import { BookingApiService } from '../../booking/services/booking-api.service';
 import { Professional } from '../../booking/models/professional.model';
 import { Service } from '../../booking/models/service.model';
 import { Appointment } from '../../booking/models/appointment.model';
+import { TimeBlock } from '../../booking/models/time-block.model';
 import { AppointmentStatus } from '../../booking/models/appointment-status.enum';
 
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [CommonModule, NgClass],
+  imports: [CommonModule, NgClass, FormsModule],
   templateUrl: './agenda.html',
   styleUrl: './agenda.css',
   providers: [DatePipe]
@@ -25,6 +29,7 @@ export class AgendaComponent implements OnInit {
   readonly professionals = signal<Professional[]>([]);
   readonly services = signal<Service[]>([]);
   readonly appointments = signal<Appointment[]>([]);
+  readonly dayBlocks = signal<TimeBlock[]>([]);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
   readonly isCancelModalOpen = signal<boolean>(false);
@@ -36,6 +41,13 @@ export class AgendaComponent implements OnInit {
   readonly selectedProfessionalId = signal<string | null>(null);
 
   readonly dateRange = signal<Date[]>(this.generateInitialDateRange());
+
+  readonly isBlockDrawerOpen = signal<boolean>(false);
+  readonly blockProfessionalId = signal<string>('');
+  readonly blockType = signal<'day' | 'range'>('range');
+  readonly blockStartTime = signal<string>('08:00');
+  readonly blockEndTime = signal<string>('18:00');
+  readonly submittingBlock = signal<boolean>(false);
 
   private generateInitialDateRange(): Date[] {
     const range: Date[] = [];
@@ -66,14 +78,6 @@ export class AgendaComponent implements OnInit {
       next: (store) => {
         this.storeId.set(store.id);
         this.loadCatalog(store.id);
-        this.loadAppointments(store.id, this.selectedDate(), this.selectedProfessionalId());
-
-        setTimeout(() => {
-          const el = document.getElementById(`date-pill-${this.selectedDate().getTime()}`);
-          if (el) {
-            el.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
-          }
-        }, 100);
       },
       error: () => {
         this.error.set('Erro ao carregar dados do estabelecimento.');
@@ -86,6 +90,14 @@ export class AgendaComponent implements OnInit {
     this.adminApiService.getStoreProfessionals(storeId).subscribe({
       next: (profs) => {
         this.professionals.set(profs);
+        this.loadAppointments(storeId, this.selectedDate(), this.selectedProfessionalId());
+
+        setTimeout(() => {
+          const el = document.getElementById(`date-pill-${this.selectedDate().getTime()}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
+          }
+        }, 100);
       }
     });
 
@@ -108,10 +120,38 @@ export class AgendaComponent implements OnInit {
     const startISO = startOfDay.toISOString();
     const endISO = endOfDay.toISOString();
 
-    this.adminApiService.getAppointments(storeId, startISO, endISO, professionalId).subscribe({
+    const appointments$ = this.adminApiService.getAppointments(storeId, startISO, endISO, professionalId);
+
+    const targetProfs = professionalId 
+      ? this.professionals().filter(p => p.id === professionalId) 
+      : this.professionals();
+
+    const blocksRequests = targetProfs.map(p => 
+      this.adminApiService.listTimeBlocks(storeId, p.id, startISO, endISO).pipe(
+        catchError(() => of([] as TimeBlock[]))
+      )
+    );
+
+    const timeBlocks$ = blocksRequests.length > 0 
+      ? forkJoin(blocksRequests) 
+      : of([] as TimeBlock[][]);
+
+    forkJoin({
+      appointments: appointments$,
+      timeBlocksGrouped: timeBlocks$
+    }).subscribe({
       next: (res) => {
-        const sorted = [...res].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-        this.appointments.set(sorted);
+        const sortedAppointments = [...res.appointments].sort(
+          (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+        );
+        this.appointments.set(sortedAppointments);
+
+        const flatBlocks = res.timeBlocksGrouped.reduce((acc, curr) => acc.concat(curr), []);
+        const sortedBlocks = flatBlocks.sort(
+          (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+        );
+        this.dayBlocks.set(sortedBlocks);
+
         this.loading.set(false);
       },
       error: () => {
@@ -248,5 +288,105 @@ export class AgendaComponent implements OnInit {
       case AppointmentStatus.Completed: return 'status-completed';
       default: return '';
     }
+  }
+
+  openBlockDrawer(): void {
+    const activeProfId = this.selectedProfessionalId();
+    if (activeProfId) {
+      this.blockProfessionalId.set(activeProfId);
+    } else if (this.professionals().length > 0) {
+      this.blockProfessionalId.set(this.professionals()[0].id);
+    } else {
+      this.blockProfessionalId.set('');
+    }
+
+    this.blockType.set('range');
+    this.blockStartTime.set('08:00');
+    this.blockEndTime.set('18:00');
+    this.isBlockDrawerOpen.set(true);
+  }
+
+  closeBlockDrawer(): void {
+    this.isBlockDrawerOpen.set(false);
+  }
+
+  addTimeBlock(): void {
+    const sId = this.storeId();
+    const pId = this.blockProfessionalId();
+    if (!sId || !pId) {
+      alert('Selecione um profissional.');
+      return;
+    }
+
+    const date = this.selectedDate();
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+
+    let startTimeISO: string;
+    let endTimeISO: string;
+
+    if (this.blockType() === 'day') {
+      const dateStart = new Date(year, month, day, 0, 0, 0, 0);
+      const dateEnd = new Date(year, month, day, 23, 59, 59, 999);
+      startTimeISO = dateStart.toISOString();
+      endTimeISO = dateEnd.toISOString();
+    } else {
+      const [startH, startM] = this.blockStartTime().split(':').map(Number);
+      const [endH, endM] = this.blockEndTime().split(':').map(Number);
+
+      const dateStart = new Date(year, month, day, startH, startM, 0, 0);
+      const dateEnd = new Date(year, month, day, endH, endM, 0, 0);
+
+      if (dateEnd <= dateStart) {
+        alert('O horário de término deve ser posterior ao horário de início.');
+        return;
+      }
+
+      startTimeISO = dateStart.toISOString();
+      endTimeISO = dateEnd.toISOString();
+    }
+
+    this.submittingBlock.set(true);
+    this.adminApiService.createTimeBlock(sId, pId, {
+      startTime: startTimeISO,
+      endTime: endTimeISO
+    }).subscribe({
+      next: () => {
+        this.submittingBlock.set(false);
+        this.closeBlockDrawer();
+        this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId());
+      },
+      error: () => {
+        alert('Erro ao criar bloqueio de horário.');
+        this.submittingBlock.set(false);
+      }
+    });
+  }
+
+  deleteTimeBlock(blockId: string, professionalId: string): void {
+    const sId = this.storeId();
+    if (!sId) return;
+
+    if (confirm('Tem certeza de que deseja remover este bloqueio de horário?')) {
+      this.loading.set(true);
+      this.adminApiService.deleteTimeBlock(sId, professionalId, blockId).subscribe({
+        next: () => {
+          this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId());
+        },
+        error: () => {
+          alert('Erro ao remover o bloqueio.');
+          this.loading.set(false);
+        }
+      });
+    }
+  }
+
+  formatBlockRangeTime(startISO: string, endISO: string): string {
+    const start = new Date(startISO);
+    const end = new Date(endISO);
+    const isFullDay = start.getHours() === 0 && start.getMinutes() === 0 && end.getHours() === 23 && end.getMinutes() === 59;
+    if (isFullDay) return 'Dia Inteiro';
+    return `${this.formatTime(startISO)} - ${this.formatTime(endISO)}`;
   }
 }

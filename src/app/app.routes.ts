@@ -17,6 +17,10 @@ export const routes: Routes = [
       {
         path: 'servicos',
         loadComponent: () => import('./features/admin/services-mgmt/services-mgmt').then(m => m.ServicesMgmtComponent)
+      },
+      {
+        path: 'profissionais',
+        loadComponent: () => import('./features/admin/professionals-mgmt/professionals-mgmt').then(m => m.ProfessionalsMgmtComponent)
       }
     ]
   },

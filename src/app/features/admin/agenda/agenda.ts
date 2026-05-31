@@ -11,11 +11,25 @@ import { Service } from '../../booking/models/service.model';
 import { Appointment } from '../../booking/models/appointment.model';
 import { TimeBlock } from '../../booking/models/time-block.model';
 import { AppointmentStatus } from '../../booking/models/appointment-status.enum';
+import { SpinnerComponent } from '../../../../shared/components/spinner/spinner';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
+import { DateCarouselComponent } from './components/date-carousel/date-carousel';
+import { CancelAppointmentDrawerComponent } from './components/cancel-appointment-drawer/cancel-appointment-drawer';
+import { TimeBlockDrawerComponent } from '../components/time-block-drawer/time-block-drawer';
 
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [CommonModule, NgClass, FormsModule],
+  imports: [
+    CommonModule,
+    NgClass,
+    FormsModule,
+    SpinnerComponent,
+    EmptyStateComponent,
+    DateCarouselComponent,
+    CancelAppointmentDrawerComponent,
+    TimeBlockDrawerComponent
+  ],
   templateUrl: './agenda.html',
   styleUrl: './agenda.css',
   providers: [DatePipe]
@@ -43,11 +57,12 @@ export class AgendaComponent implements OnInit {
   readonly dateRange = signal<Date[]>(this.generateInitialDateRange());
 
   readonly isBlockDrawerOpen = signal<boolean>(false);
-  readonly blockProfessionalId = signal<string>('');
-  readonly blockType = signal<'day' | 'range'>('range');
-  readonly blockStartTime = signal<string>('08:00');
-  readonly blockEndTime = signal<string>('18:00');
   readonly submittingBlock = signal<boolean>(false);
+
+  readonly selectedProfessionalForBlock = computed(() => {
+    const id = this.selectedProfessionalId();
+    return this.professionals().find(p => p.id === id) || null;
+  });
 
   private generateInitialDateRange(): Date[] {
     const range: Date[] = [];
@@ -291,18 +306,6 @@ export class AgendaComponent implements OnInit {
   }
 
   openBlockDrawer(): void {
-    const activeProfId = this.selectedProfessionalId();
-    if (activeProfId) {
-      this.blockProfessionalId.set(activeProfId);
-    } else if (this.professionals().length > 0) {
-      this.blockProfessionalId.set(this.professionals()[0].id);
-    } else {
-      this.blockProfessionalId.set('');
-    }
-
-    this.blockType.set('range');
-    this.blockStartTime.set('08:00');
-    this.blockEndTime.set('18:00');
     this.isBlockDrawerOpen.set(true);
   }
 
@@ -310,33 +313,25 @@ export class AgendaComponent implements OnInit {
     this.isBlockDrawerOpen.set(false);
   }
 
-  addTimeBlock(): void {
+  handleCreateTimeBlock(event: { professionalId: string; date: string; type: 'day' | 'range'; startTime: string; endTime: string }): void {
     const sId = this.storeId();
-    const pId = this.blockProfessionalId();
-    if (!sId || !pId) {
-      alert('Selecione um profissional.');
-      return;
-    }
+    if (!sId) return;
 
-    const date = this.selectedDate();
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const day = date.getDate();
-
+    const [year, month, day] = event.date.split('-').map(Number);
     let startTimeISO: string;
     let endTimeISO: string;
 
-    if (this.blockType() === 'day') {
-      const dateStart = new Date(year, month, day, 0, 0, 0, 0);
-      const dateEnd = new Date(year, month, day, 23, 59, 59, 999);
+    if (event.type === 'day') {
+      const dateStart = new Date(year, month - 1, day, 0, 0, 0, 0);
+      const dateEnd = new Date(year, month - 1, day, 23, 59, 59, 999);
       startTimeISO = dateStart.toISOString();
       endTimeISO = dateEnd.toISOString();
     } else {
-      const [startH, startM] = this.blockStartTime().split(':').map(Number);
-      const [endH, endM] = this.blockEndTime().split(':').map(Number);
+      const [startH, startM] = event.startTime.split(':').map(Number);
+      const [endH, endM] = event.endTime.split(':').map(Number);
 
-      const dateStart = new Date(year, month, day, startH, startM, 0, 0);
-      const dateEnd = new Date(year, month, day, endH, endM, 0, 0);
+      const dateStart = new Date(year, month - 1, day, startH, startM, 0, 0);
+      const dateEnd = new Date(year, month - 1, day, endH, endM, 0, 0);
 
       if (dateEnd <= dateStart) {
         alert('O horário de término deve ser posterior ao horário de início.');
@@ -348,7 +343,7 @@ export class AgendaComponent implements OnInit {
     }
 
     this.submittingBlock.set(true);
-    this.adminApiService.createTimeBlock(sId, pId, {
+    this.adminApiService.createTimeBlock(sId, event.professionalId, {
       startTime: startTimeISO,
       endTime: endTimeISO
     }).subscribe({

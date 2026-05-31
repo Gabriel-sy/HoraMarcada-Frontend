@@ -1,0 +1,124 @@
+<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 opacity-0"
+     [class.opacity-0]="!isOpen()"
+     [class.opacity-100]="isOpen()"
+     (click)="onClose()"></div>
+
+<div class="fixed bg-white shadow-2xl transition-transform duration-300 ease-in-out z-50 flex flex-col
+            bottom-0 left-0 right-0 h-[85vh] rounded-t-2xl w-full
+            md:top-0 md:bottom-0 md:right-0 md:left-auto md:h-full md:w-md md:rounded-l-2xl md:rounded-tr-none
+            translate-y-full md:translate-y-0 md:translate-x-full"
+     [class.translate-y-full]="!isOpen()"
+     [class.md:translate-x-full]="!isOpen()"
+     [class.translate-y-0]="isOpen()"
+     [class.md:translate-x-0]="isOpen()">
+   
+   <div class="flex justify-between items-center p-6 border-b border-border-light shrink-0">
+      <h3 class="m-0 text-lg font-bold text-text-primary">
+        {{ professional() ? 'Editar Profissional' : 'Novo Profissional' }}
+      </h3>
+      <button 
+        type="button" 
+        class="bg-transparent border-none text-2xl cursor-pointer text-text-secondary hover:text-text-primary leading-none transition-colors" 
+        (click)="onClose()">
+        ×
+      </button>
+   </div>
+
+   <nav class="flex border-b border-border-light px-6 shrink-0 bg-neutral-50/50">
+     <button 
+       type="button" 
+       (click)="setTab('basic')" 
+       class="px-4 py-3.5 text-xs font-bold border-b-2 bg-transparent cursor-pointer transition-all duration-200 uppercase tracking-wider" 
+       [ngClass]="activeTab() === 'basic' ? 'border-text-primary text-text-primary' : 'border-transparent text-text-secondary hover:text-text-primary'">
+       Cadastro
+     </button>
+     <button 
+       type="button" 
+       (click)="setTab('weekly')" 
+       class="px-4 py-3.5 text-xs font-bold border-b-2 bg-transparent cursor-pointer transition-all duration-200 uppercase tracking-wider" 
+       [ngClass]="activeTab() === 'weekly' ? 'border-text-primary text-text-primary' : 'border-transparent text-text-secondary hover:text-text-primary'">
+       Jornada de Trabalho
+     </button>
+   </nav>
+
+   <div class="flex-1 overflow-y-auto">
+     @switch (activeTab()) {
+       @case ('basic') {
+         <div class="p-6 pb-4 flex flex-col gap-5">
+           <div class="flex flex-col gap-1.5">
+             <label class="text-xs font-semibold text-text-secondary">Nome Completo</label>
+             <input 
+               type="text" 
+               [(ngModel)]="formName" 
+               class="px-3.5 py-2.5 border border-border-light rounded-xl text-sm w-full focus:outline-none focus:border-text-primary transition-colors box-border" 
+               placeholder="Ex: Gabriel Souza" />
+           </div>
+
+           <div class="flex flex-col gap-1.5">
+             <label class="text-xs font-semibold text-text-secondary">E-mail (Opcional)</label>
+             <input 
+               type="email" 
+               [(ngModel)]="formEmail" 
+               class="px-3.5 py-2.5 border border-border-light rounded-xl text-sm w-full focus:outline-none focus:border-text-primary transition-colors box-border" 
+               placeholder="Ex: gabriel@example.com" />
+           </div>
+
+           <div class="flex flex-col gap-1.5">
+             <label class="text-xs font-semibold text-text-secondary">WhatsApp (Opcional)</label>
+             <input 
+               type="text" 
+               [(ngModel)]="formWhatsApp" 
+               class="px-3.5 py-2.5 border border-border-light rounded-xl text-sm w-full focus:outline-none focus:border-text-primary transition-colors box-border" 
+               placeholder="Ex: +5511988888888" />
+           </div>
+
+           <div class="flex flex-col gap-1.5">
+             <label class="text-xs font-semibold text-text-secondary">URL da Foto de Perfil (Opcional)</label>
+             <input 
+               type="text" 
+               [(ngModel)]="formPhotoUrl" 
+               class="px-3.5 py-2.5 border border-border-light rounded-xl text-sm w-full focus:outline-none focus:border-text-primary transition-colors box-border" 
+               placeholder="Ex: https://link-da-imagem.com/foto.png" />
+           </div>
+         </div>
+       }
+       @case ('weekly') {
+         <div class="p-6 flex flex-col gap-6">
+           <app-weekly-schedule-config [weeklyHours]="formWeeklyHours()" (weeklyHoursChange)="onWeeklyHoursChange($event)"></app-weekly-schedule-config>
+         </div>
+       }
+     }
+   </div>
+
+   <div class="flex justify-between items-center p-6 pb-4 pt-4 border-t border-border-light bg-neutral-50 shrink-0">
+     <div>
+       @if (professional() && professional()?.active) {
+         <button 
+           type="button" 
+           class="px-4 py-2.5 bg-transparent border border-red-200 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-50 hover:border-red-300 transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
+           (click)="onDeactivate()">
+           Desativar
+         </button>
+       }
+     </div>
+     <div class="flex items-center gap-3">
+       <button 
+         type="button" 
+         class="px-4 py-2.5 bg-transparent border border-border-light rounded-xl text-sm font-semibold text-text-secondary cursor-pointer hover:bg-white transition-all active:scale-95" 
+         (click)="onClose()">
+         Cancelar
+       </button>
+       <button 
+         type="button" 
+         class="px-5 py-2.5 bg-text-primary text-white border-none rounded-xl text-sm font-semibold cursor-pointer hover:bg-neutral-800 transition-all active:scale-[0.97] flex items-center gap-2"
+         [disabled]="submitting()"
+         (click)="submitForm()">
+         @if (submitting()) {
+           <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+         }
+         Salvar
+       </button>
+     </div>
+   </div>
+
+</div>

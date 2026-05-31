@@ -1,0 +1,28 @@
+<button type="button" class="hidden md:flex items-center justify-center w-9 h-9 rounded-full border border-border-light bg-white text-text-secondary cursor-pointer hover:bg-accent-light hover:border-text-primary hover:text-text-primary active:scale-95 transition-all shrink-0" (click)="navigateDays(-1)">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+  </svg>
+</button>
+
+<div class="flex gap-2.5 overflow-x-auto py-1 pb-3 no-scrollbar snap-x snap-mandatory flex-1">
+  @for (date of dateRange(); track date.getTime()) {
+    <button 
+      type="button" 
+      class="flex-1 md:flex-initial min-w-[56px] md:w-14 flex flex-col items-center justify-center py-3 px-2 bg-white border border-border-light rounded-xl cursor-pointer hover:border-text-muted active:scale-[0.96] transition-all relative snap-start" 
+      [id]="'date-pill-' + date.getTime()"
+      [ngClass]="{ 'bg-accent-light! border-text-primary!': selectedDate().toDateString() === date.toDateString() }"
+      (click)="selectDate(date)">
+      <span class="text-[10px] font-semibold uppercase text-text-secondary mb-1" [ngClass]="{ 'text-text-primary': selectedDate().toDateString() === date.toDateString() }">{{ date | date:'EEE':'':'pt-BR' | slice:0:3 }}</span>
+      <span class="text-base font-bold text-text-primary">{{ date | date:'d' }}</span>
+      @if (isToday(date)) {
+        <span class="absolute bottom-1.5 w-1 h-1 bg-accent rounded-full" [ngClass]="{ 'bg-text-primary': selectedDate().toDateString() === date.toDateString() }"></span>
+      }
+    </button>
+  }
+</div>
+
+<button type="button" class="hidden md:flex items-center justify-center w-9 h-9 rounded-full border border-border-light bg-white text-text-secondary cursor-pointer hover:bg-accent-light hover:border-text-primary hover:text-text-primary active:scale-95 transition-all shrink-0" (click)="navigateDays(1)">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+  </svg>
+</button>

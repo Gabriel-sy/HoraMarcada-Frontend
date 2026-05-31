@@ -1,14 +1,17 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { RouterOutlet } from '@angular/router';
 import { AuthMockService } from '../../core/auth/auth-mock.service';
 import { AdminApiService } from './services/admin-api.service';
 import { Store } from '../booking/models/store.model';
+import { AdminSidebarComponent } from './components/admin-sidebar/admin-sidebar';
+import { AdminMobileNavComponent } from './components/admin-mobile-nav/admin-mobile-nav';
+import { MockConfigModalComponent } from './components/mock-config-modal/mock-config-modal';
+import { SpinnerComponent } from '../../../shared/components/spinner/spinner';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule],
+  imports: [RouterOutlet, AdminSidebarComponent, AdminMobileNavComponent, MockConfigModalComponent, SpinnerComponent],
   templateUrl: './admin-layout.html',
   styleUrl: './admin-layout.css'
 })
@@ -47,9 +50,13 @@ export class AdminLayoutComponent implements OnInit {
     this.showMockConfig.update(v => !v);
   }
 
-  saveMockConfig(): void {
-    this.authService.setUserId(this.mockUserId());
-    this.authService.setToken(this.mockToken() || null);
+  saveMockConfig(config?: { userId: string; token: string }): void {
+    if (config) {
+      this.mockUserId.set(config.userId);
+      this.mockToken.set(config.token);
+      this.authService.setUserId(config.userId);
+      this.authService.setToken(config.token || null);
+    }
     this.showMockConfig.set(false);
     this.loadStore(this.mockUserId());
   }

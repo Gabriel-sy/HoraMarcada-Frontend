@@ -5,6 +5,10 @@ import { AuthMockService } from '../../../core/auth/auth-mock.service';
 import { AdminApiService } from '../services/admin-api.service';
 import { Professional } from '../../booking/models/professional.model';
 import { TimeBlock } from '../../booking/models/time-block.model';
+import { SpinnerComponent } from '../../../../shared/components/spinner/spinner';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
+import { ProfessionalFormDrawerComponent } from './components/professional-form-drawer/professional-form-drawer';
+import { TimeBlockDrawerComponent } from '../components/time-block-drawer/time-block-drawer';
 
 interface DayHoursConfig {
   active: boolean;
@@ -19,23 +23,13 @@ interface DayHoursConfig {
 @Component({
   selector: 'app-professionals-mgmt',
   standalone: true,
-  imports: [NgClass, FormsModule],
+  imports: [NgClass, FormsModule, SpinnerComponent, EmptyStateComponent, ProfessionalFormDrawerComponent, TimeBlockDrawerComponent],
   templateUrl: './professionals-mgmt.html',
   styleUrl: './professionals-mgmt.css'
 })
 export class ProfessionalsMgmtComponent implements OnInit {
   private readonly authService = inject(AuthMockService);
   private readonly adminApiService = inject(AdminApiService);
-
-  readonly DAYS_OF_WEEK = [
-    'Domingo',
-    'Segunda-feira',
-    'Terça-feira',
-    'Quarta-feira',
-    'Quinta-feira',
-    'Sexta-feira',
-    'Sábado'
-  ];
 
   readonly storeId = signal<string | null>(null);
   readonly professionals = signal<Professional[]>([]);
@@ -47,27 +41,6 @@ export class ProfessionalsMgmtComponent implements OnInit {
   readonly isDrawerOpen = signal<boolean>(false);
   readonly isBlocksDrawerOpen = signal<boolean>(false);
   readonly selectedProfessional = signal<Professional | null>(null);
-  readonly activeTab = signal<'basic' | 'weekly'>('basic');
-
-  readonly formName = signal<string>('');
-  readonly formEmail = signal<string>('');
-  readonly formWhatsApp = signal<string>('');
-  readonly formPhotoUrl = signal<string>('');
-
-  readonly formWeeklyHours = signal<DayHoursConfig[]>([
-    { active: false, startTime: '09:00', endTime: '18:00', hasLunch: false, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-    { active: true, startTime: '09:00', endTime: '18:00', hasLunch: true, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-    { active: true, startTime: '09:00', endTime: '18:00', hasLunch: true, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-    { active: true, startTime: '09:00', endTime: '18:00', hasLunch: true, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-    { active: true, startTime: '09:00', endTime: '18:00', hasLunch: true, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-    { active: true, startTime: '09:00', endTime: '18:00', hasLunch: true, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-    { active: false, startTime: '09:00', endTime: '18:00', hasLunch: false, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 }
-  ]);
-
-  readonly blockType = signal<'day' | 'range'>('range');
-  readonly blockDate = signal<string>('');
-  readonly blockStartTime = signal<string>('08:00');
-  readonly blockEndTime = signal<string>('18:00');
 
   ngOnInit(): void {
     this.loadStoreData();
@@ -101,61 +74,11 @@ export class ProfessionalsMgmtComponent implements OnInit {
 
   openCreateForm(): void {
     this.selectedProfessional.set(null);
-    this.formName.set('');
-    this.formEmail.set('');
-    this.formWhatsApp.set('');
-    this.formPhotoUrl.set('');
-    this.activeTab.set('basic');
-
-    this.formWeeklyHours.set([
-      { active: false, startTime: '09:00', endTime: '18:00', hasLunch: false, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: true, startTime: '09:00', endTime: '18:00', hasLunch: true, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: true, startTime: '09:00', endTime: '18:00', hasLunch: true, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: true, startTime: '09:00', endTime: '18:00', hasLunch: true, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: true, startTime: '09:00', endTime: '18:00', hasLunch: true, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: true, startTime: '09:00', endTime: '18:00', hasLunch: true, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: false, startTime: '09:00', endTime: '18:00', hasLunch: false, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 }
-    ]);
-
     this.isDrawerOpen.set(true);
   }
 
   openEditForm(professional: Professional): void {
     this.selectedProfessional.set(professional);
-    this.formName.set(professional.name);
-    this.formEmail.set(professional.email ? professional.email.value : '');
-    this.formWhatsApp.set(professional.whatsApp ? professional.whatsApp.value : '');
-    this.formPhotoUrl.set(professional.photoUrl || '');
-    this.activeTab.set('basic');
-
-    const defaultHours = [
-      { active: false, startTime: '09:00', endTime: '18:00', hasLunch: false, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: false, startTime: '09:00', endTime: '18:00', hasLunch: false, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: false, startTime: '09:00', endTime: '18:00', hasLunch: false, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: false, startTime: '09:00', endTime: '18:00', hasLunch: false, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: false, startTime: '09:00', endTime: '18:00', hasLunch: false, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: false, startTime: '09:00', endTime: '18:00', hasLunch: false, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 },
-      { active: false, startTime: '09:00', endTime: '18:00', hasLunch: false, lunchStart: '12:00', lunchEnd: '13:00', intervalMinutes: 30 }
-    ];
-
-    if (professional.weeklySchedules) {
-      professional.weeklySchedules.forEach(schedule => {
-        const day = schedule.dayOfWeek;
-        if (day >= 0 && day <= 6) {
-          defaultHours[day] = {
-            active: true,
-            startTime: schedule.startTime ? schedule.startTime.slice(0, 5) : '09:00',
-            endTime: schedule.endTime ? schedule.endTime.slice(0, 5) : '18:00',
-            hasLunch: !!(schedule.lunchStart && schedule.lunchEnd),
-            lunchStart: schedule.lunchStart ? schedule.lunchStart.slice(0, 5) : '12:00',
-            lunchEnd: schedule.lunchEnd ? schedule.lunchEnd.slice(0, 5) : '13:00',
-            intervalMinutes: schedule.intervalMinutes || 30
-          };
-        }
-      });
-    }
-    this.formWeeklyHours.set(defaultHours);
-
     this.isDrawerOpen.set(true);
   }
 
@@ -165,32 +88,12 @@ export class ProfessionalsMgmtComponent implements OnInit {
 
   openBlocksForm(professional: Professional): void {
     this.selectedProfessional.set(professional);
-    this.blockType.set('range');
-    this.blockDate.set('');
-    this.blockStartTime.set('08:00');
-    this.blockEndTime.set('18:00');
-    this.loadTimeBlocks();
+    this.handleLoadBlocks(professional.id);
     this.isBlocksDrawerOpen.set(true);
   }
 
   closeBlocksDrawer(): void {
     this.isBlocksDrawerOpen.set(false);
-  }
-
-  setTab(tab: 'basic' | 'weekly'): void {
-    this.activeTab.set(tab);
-  }
-
-  updateDayActive(dayIndex: number, active: boolean): void {
-    const hours = [...this.formWeeklyHours()];
-    hours[dayIndex] = { ...hours[dayIndex], active };
-    this.formWeeklyHours.set(hours);
-  }
-
-  updateDayLunchActive(dayIndex: number, hasLunch: boolean): void {
-    const hours = [...this.formWeeklyHours()];
-    hours[dayIndex] = { ...hours[dayIndex], hasLunch };
-    this.formWeeklyHours.set(hours);
   }
 
   formatWeeklyHoursPreview(prof: Professional): string {
@@ -224,10 +127,9 @@ export class ProfessionalsMgmtComponent implements OnInit {
     return `${days.map(formatDayName).join(', ')} • ${start} - ${end}`;
   }
 
-  loadTimeBlocks(): void {
+  handleLoadBlocks(professionalId: string): void {
     const sId = this.storeId();
-    const p = this.selectedProfessional();
-    if (!sId || !p) return;
+    if (!sId) return;
 
     this.loadingBlocks.set(true);
     const start = new Date();
@@ -236,7 +138,7 @@ export class ProfessionalsMgmtComponent implements OnInit {
     const end = new Date(start);
     end.setDate(start.getDate() + 90);
 
-    this.adminApiService.listTimeBlocks(sId, p.id, start.toISOString(), end.toISOString()).subscribe({
+    this.adminApiService.listTimeBlocks(sId, professionalId, start.toISOString(), end.toISOString()).subscribe({
       next: (blocks) => {
         const sorted = [...blocks].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
         this.timeBlocks.set(sorted);
@@ -248,28 +150,22 @@ export class ProfessionalsMgmtComponent implements OnInit {
     });
   }
 
-  addTimeBlock(): void {
+  handleCreateTimeBlock(payload: { professionalId: string; date: string; type: 'day' | 'range'; startTime: string; endTime: string }): void {
     const sId = this.storeId();
-    const p = this.selectedProfessional();
-    if (!sId || !p) return;
+    if (!sId) return;
 
-    if (!this.blockDate()) {
-      alert('Selecione uma data para o bloqueio.');
-      return;
-    }
-
-    const [year, month, day] = this.blockDate().split('-').map(Number);
+    const [year, month, day] = payload.date.split('-').map(Number);
     let startTimeISO: string;
     let endTimeISO: string;
 
-    if (this.blockType() === 'day') {
+    if (payload.type === 'day') {
       const dateStart = new Date(year, month - 1, day, 0, 0, 0, 0);
       const dateEnd = new Date(year, month - 1, day, 23, 59, 59, 999);
       startTimeISO = dateStart.toISOString();
       endTimeISO = dateEnd.toISOString();
     } else {
-      const [startH, startM] = this.blockStartTime().split(':').map(Number);
-      const [endH, endM] = this.blockEndTime().split(':').map(Number);
+      const [startH, startM] = payload.startTime.split(':').map(Number);
+      const [endH, endM] = payload.endTime.split(':').map(Number);
 
       const dateStart = new Date(year, month - 1, day, startH, startM, 0, 0);
       const dateEnd = new Date(year, month - 1, day, endH, endM, 0, 0);
@@ -284,13 +180,13 @@ export class ProfessionalsMgmtComponent implements OnInit {
     }
 
     this.submitting.set(true);
-    this.adminApiService.createTimeBlock(sId, p.id, {
+    this.adminApiService.createTimeBlock(sId, payload.professionalId, {
       startTime: startTimeISO,
       endTime: endTimeISO
     }).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.loadTimeBlocks();
+        this.handleLoadBlocks(payload.professionalId);
       },
       error: () => {
         alert('Erro ao criar bloqueio de horário.');
@@ -299,15 +195,14 @@ export class ProfessionalsMgmtComponent implements OnInit {
     });
   }
 
-  deleteTimeBlock(blockId: string): void {
+  handleDeleteTimeBlock(event: { blockId: string; professionalId: string }): void {
     const sId = this.storeId();
-    const p = this.selectedProfessional();
-    if (!sId || !p) return;
+    if (!sId) return;
 
     if (confirm('Tem certeza de que deseja remover este bloqueio de horário?')) {
-      this.adminApiService.deleteTimeBlock(sId, p.id, blockId).subscribe({
+      this.adminApiService.deleteTimeBlock(sId, event.professionalId, event.blockId).subscribe({
         next: () => {
-          this.loadTimeBlocks();
+          this.handleLoadBlocks(event.professionalId);
         },
         error: () => {
           alert('Erro ao remover o bloqueio.');
@@ -337,46 +232,9 @@ export class ProfessionalsMgmtComponent implements OnInit {
     }
   }
 
-  submitForm(): void {
+  handleSaveProfessional(payload: any): void {
     const sId = this.storeId();
     if (!sId) return;
-
-    if (!this.formName().trim()) {
-      alert('O nome do profissional é obrigatório.');
-      return;
-    }
-
-    const weeklyHoursPayload: any[] = [];
-    this.formWeeklyHours().forEach((day, index) => {
-      if (day.active) {
-        const startTimeStr = day.startTime + ':00';
-        const endTimeStr = day.endTime + ':00';
-        let lunchStartStr: string | null = null;
-        let lunchEndStr: string | null = null;
-
-        if (day.hasLunch) {
-          lunchStartStr = day.lunchStart + ':00';
-          lunchEndStr = day.lunchEnd + ':00';
-        }
-
-        weeklyHoursPayload.push({
-          dayOfWeek: index,
-          startTime: startTimeStr,
-          endTime: endTimeStr,
-          lunchStart: lunchStartStr,
-          lunchEnd: lunchEndStr,
-          intervalMinutes: day.intervalMinutes
-        });
-      }
-    });
-
-    const payload = {
-      name: this.formName().trim(),
-      photoUrl: this.formPhotoUrl().trim() || null,
-      whatsApp: this.formWhatsApp().trim() || null,
-      email: this.formEmail().trim() || null,
-      weeklyHours: weeklyHoursPayload
-    };
 
     this.submitting.set(true);
     const p = this.selectedProfessional();
@@ -405,32 +263,5 @@ export class ProfessionalsMgmtComponent implements OnInit {
         }
       });
     }
-  }
-
-  formatBlockDateTime(startTimeStr: string, endTimeStr: string): string {
-    const start = new Date(startTimeStr);
-    const end = new Date(endTimeStr);
-
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long'
-    };
-
-    const dateFormatted = start.toLocaleDateString('pt-BR', options);
-    const capitalizedDate = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
-
-    const isFullDay = start.getHours() === 0 && start.getMinutes() === 0 && end.getHours() === 23 && end.getMinutes() === 59;
-
-    if (isFullDay) {
-      return `${capitalizedDate} • Dia Inteiro`;
-    }
-
-    const startH = String(start.getHours()).padStart(2, '0');
-    const startM = String(start.getMinutes()).padStart(2, '0');
-    const endH = String(end.getHours()).padStart(2, '0');
-    const endM = String(end.getMinutes()).padStart(2, '0');
-
-    return `${capitalizedDate} • ${startH}:${startM} às ${endH}:${endM}`;
   }
 }

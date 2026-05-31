@@ -5,11 +5,14 @@ import { AuthMockService } from '../../../core/auth/auth-mock.service';
 import { AdminApiService } from '../services/admin-api.service';
 import { Service } from '../../booking/models/service.model';
 import { Professional } from '../../booking/models/professional.model';
+import { SpinnerComponent } from '../../../../shared/components/spinner/spinner';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
+import { ServiceFormDrawerComponent } from './components/service-form-drawer/service-form-drawer';
 
 @Component({
   selector: 'app-services-mgmt',
   standalone: true,
-  imports: [CommonModule, NgClass, FormsModule],
+  imports: [CommonModule, NgClass, FormsModule, SpinnerComponent, EmptyStateComponent, ServiceFormDrawerComponent],
   templateUrl: './services-mgmt.html',
   styleUrl: './services-mgmt.css'
 })
@@ -26,12 +29,6 @@ export class ServicesMgmtComponent implements OnInit {
 
   readonly isFormOpen = signal<boolean>(false);
   readonly selectedService = signal<Service | null>(null);
-
-  readonly formName = signal<string>('');
-  readonly formPrice = signal<number | null>(null);
-  readonly formDuration = signal<number>(30);
-  readonly formActive = signal<boolean>(true);
-  readonly formProfessionalIds = signal<string[]>([]);
 
   ngOnInit(): void {
     this.loadStoreData();
@@ -73,39 +70,16 @@ export class ServicesMgmtComponent implements OnInit {
 
   openCreateForm(): void {
     this.selectedService.set(null);
-    this.formName.set('');
-    this.formPrice.set(null);
-    this.formDuration.set(30);
-    this.formActive.set(true);
-    this.formProfessionalIds.set([]);
     this.isFormOpen.set(true);
   }
 
   openEditForm(service: Service): void {
     this.selectedService.set(service);
-    this.formName.set(service.name);
-    this.formPrice.set(service.price ? service.price.amount : null);
-    this.formDuration.set(service.durationMinutes);
-    this.formActive.set(service.active);
-    this.formProfessionalIds.set(service.professionalIds || []);
     this.isFormOpen.set(true);
   }
 
   closeForm(): void {
     this.isFormOpen.set(false);
-  }
-
-  toggleProfessional(professionalId: string): void {
-    const current = this.formProfessionalIds();
-    if (current.includes(professionalId)) {
-      this.formProfessionalIds.set(current.filter(id => id !== professionalId));
-    } else {
-      this.formProfessionalIds.set([...current, professionalId]);
-    }
-  }
-
-  isProfessionalSelected(professionalId: string): boolean {
-    return this.formProfessionalIds().includes(professionalId);
   }
 
   formatPrice(priceValue: any): string {
@@ -122,32 +96,14 @@ export class ServicesMgmtComponent implements OnInit {
       .join(', ');
   }
 
-  submitForm(): void {
+  handleSaveService(payload: any): void {
     const sId = this.storeId();
     if (!sId) return;
 
-    if (!this.formName().trim()) {
-      alert('O nome do serviço é obrigatório.');
-      return;
-    }
-
-    if (this.formDuration() <= 0) {
-      alert('A duração deve ser maior que zero.');
-      return;
-    }
-
     this.submitting.set(true);
-    const serviceInput = {
-      name: this.formName(),
-      durationMinutes: this.formDuration(),
-      price: this.formPrice(),
-      active: this.formActive(),
-      professionalIds: this.formProfessionalIds()
-    };
-
     const selected = this.selectedService();
     if (selected) {
-      this.adminApiService.updateService(sId, selected.id, serviceInput).subscribe({
+      this.adminApiService.updateService(sId, selected.id, payload).subscribe({
         next: () => {
           this.submitting.set(false);
           this.closeForm();
@@ -159,7 +115,7 @@ export class ServicesMgmtComponent implements OnInit {
         }
       });
     } else {
-      this.adminApiService.addService(sId, serviceInput).subscribe({
+      this.adminApiService.addService(sId, payload).subscribe({
         next: () => {
           this.submitting.set(false);
           this.closeForm();

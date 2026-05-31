@@ -1,9 +1,9 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthMockService } from '../auth/auth-mock.service';
+import { AuthService } from '../auth/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthMockService);
+  const authService = inject(AuthService);
   const token = authService.token();
 
   if (token) {

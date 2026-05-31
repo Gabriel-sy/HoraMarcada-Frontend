@@ -14,9 +14,9 @@ import { Store } from '../../../booking/models/store.model';
 export class AdminSidebarComponent {
   store = input<Store | null>(null);
 
-  toggleMockConfig = output<void>();
+  logout = output<void>();
 
-  onToggleMockConfig(): void {
-    this.toggleMockConfig.emit();
+  onLogout(): void {
+    this.logout.emit();
   }
 }

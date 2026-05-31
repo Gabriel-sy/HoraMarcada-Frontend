@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthMockService } from '../../../core/auth/auth-mock.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { AdminApiService } from '../services/admin-api.service';
 import { Service } from '../../booking/models/service.model';
 import { Professional } from '../../booking/models/professional.model';
@@ -17,7 +17,7 @@ import { ServiceFormDrawerComponent } from './components/service-form-drawer/ser
   styleUrl: './services-mgmt.css'
 })
 export class ServicesMgmtComponent implements OnInit {
-  private readonly authService = inject(AuthMockService);
+  private readonly authService = inject(AuthService);
   private readonly adminApiService = inject(AdminApiService);
 
   readonly storeId = signal<string | null>(null);
@@ -37,6 +37,10 @@ export class ServicesMgmtComponent implements OnInit {
   private loadStoreData(): void {
     this.loading.set(true);
     const userId = this.authService.userId();
+    if (!userId) {
+      this.loading.set(false);
+      return;
+    }
     this.adminApiService.getStoreByUserId(userId).subscribe({
       next: (store) => {
         this.storeId.set(store.id);

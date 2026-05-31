@@ -11,9 +11,9 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   }
 })
 export class AdminMobileNavComponent {
-  toggleMockConfig = output<void>();
+  logout = output<void>();
 
-  onToggleMockConfig(): void {
-    this.toggleMockConfig.emit();
+  onLogout(): void {
+    this.logout.emit();
   }
 }

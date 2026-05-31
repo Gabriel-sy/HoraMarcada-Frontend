@@ -1,5 +1,5 @@
 <div class="flex min-h-screen bg-white text-text-primary font-sans">
-  <app-admin-sidebar [store]="store()" (toggleMockConfig)="toggleMockConfig()"></app-admin-sidebar>
+  <app-admin-sidebar [store]="store()" (logout)="logout()"></app-admin-sidebar>
 
   <main class="flex-1 flex flex-col min-w-0">
     <div class="flex-1 p-6 pb-24 md:p-10 max-w-5xl w-full mx-auto box-border">
@@ -14,15 +14,11 @@
       @if (error() && !loading()) {
         <div class="flex flex-col items-center justify-center py-16 px-5 min-h-[200px] text-center">
           <p class="text-[#dc2626] text-sm mb-4 max-w-md">{{ error() }}</p>
-          <button type="button" class="px-4 py-2 bg-accent text-text-primary border-none rounded-lg text-sm font-semibold cursor-pointer hover:bg-accent-hover" (click)="saveMockConfig()">Tentar novamente</button>
+          <button type="button" class="px-4 py-2 bg-accent text-text-primary border-none rounded-lg text-sm font-semibold cursor-pointer hover:bg-accent-hover" (click)="retryLoad()">Tentar novamente</button>
         </div>
       }
     </div>
   </main>
 
-  <app-admin-mobile-nav (toggleMockConfig)="toggleMockConfig()"></app-admin-mobile-nav>
-
-  @if (showMockConfig()) {
-    <app-mock-config-modal [userId]="mockUserId()" [token]="mockToken()" (save)="saveMockConfig($event)" (close)="toggleMockConfig()"></app-mock-config-modal>
-  }
+  <app-admin-mobile-nav (logout)="logout()"></app-admin-mobile-nav>
 </div>

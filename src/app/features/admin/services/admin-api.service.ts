@@ -19,8 +19,10 @@ export class AdminApiService {
     return this.http.get<Store>(`${this.apiUrl}/stores/user/${userId}`);
   }
 
-  getStoreProfessionals(storeId: string): Observable<Professional[]> {
-    return this.http.get<Professional[]>(`${this.apiUrl}/stores/${storeId}/professionals`);
+  getStoreProfessionals(storeId: string, activeOnly = true): Observable<Professional[]> {
+    return this.http.get<Professional[]>(`${this.apiUrl}/stores/${storeId}/professionals`, {
+      params: new HttpParams().set('activeOnly', activeOnly.toString())
+    });
   }
 
   getAppointments(

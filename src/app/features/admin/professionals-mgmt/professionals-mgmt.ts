@@ -61,9 +61,15 @@ export class ProfessionalsMgmtComponent implements OnInit {
   }
 
   private loadProfessionals(storeId: string): void {
-    this.adminApiService.getStoreProfessionals(storeId).subscribe({
+    this.adminApiService.getStoreProfessionals(storeId, false).subscribe({
       next: (profs) => {
-        this.professionals.set(profs);
+        const sorted = [...profs].sort((a, b) => {
+          if (a.active !== b.active) {
+            return a.active ? -1 : 1;
+          }
+          return a.name.localeCompare(b.name);
+        });
+        this.professionals.set(sorted);
         this.loading.set(false);
       },
       error: () => {

@@ -27,9 +27,9 @@
         @for (prof of professionals(); track prof.id) {
           <div 
             class="flex flex-col sm:flex-row sm:items-center p-5 gap-4 transition-all duration-200"
-            [ngClass]="{ 'opacity-60 bg-neutral-50/50': !prof.active }">
+            [ngClass]="{ 'bg-neutral-50/50': !prof.active }">
             
-            <div class="flex items-center gap-3 flex-1 min-w-0">
+            <div class="flex items-center gap-3 flex-1 min-w-0" [ngClass]="{ 'opacity-60': !prof.active }">
               <div class="w-11 h-11 rounded-full overflow-hidden bg-accent-light flex items-center justify-center border border-border-light shrink-0">
                 @if (prof.photoUrl) {
                   <img [src]="prof.photoUrl" [alt]="prof.name" class="w-full h-full object-cover" />
@@ -60,7 +60,7 @@
               </div>
             </div>
 
-            <div class="sm:w-[240px] shrink-0">
+            <div class="sm:w-[240px] shrink-0" [ngClass]="{ 'opacity-60': !prof.active }">
               <span class="block text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-1">Horário de Trabalho</span>
               <span class="text-xs text-text-primary font-medium block truncate">
                 {{ formatWeeklyHoursPreview(prof) }}

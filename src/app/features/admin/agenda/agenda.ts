@@ -16,6 +16,7 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { DateCarouselComponent } from './components/date-carousel/date-carousel';
 import { CancelAppointmentDrawerComponent } from './components/cancel-appointment-drawer/cancel-appointment-drawer';
 import { TimeBlockDrawerComponent } from '../components/time-block-drawer/time-block-drawer';
+import { ProfessionalFilterDrawerComponent } from './components/professional-filter-drawer/professional-filter-drawer';
 
 @Component({
   selector: 'app-agenda',
@@ -28,7 +29,8 @@ import { TimeBlockDrawerComponent } from '../components/time-block-drawer/time-b
     EmptyStateComponent,
     DateCarouselComponent,
     CancelAppointmentDrawerComponent,
-    TimeBlockDrawerComponent
+    TimeBlockDrawerComponent,
+    ProfessionalFilterDrawerComponent
   ],
   templateUrl: './agenda.html',
   styleUrl: './agenda.css',
@@ -58,6 +60,14 @@ export class AgendaComponent implements OnInit {
 
   readonly isBlockDrawerOpen = signal<boolean>(false);
   readonly submittingBlock = signal<boolean>(false);
+  readonly isProfessionalFilterDrawerOpen = signal<boolean>(false);
+
+  readonly selectedProfessionalName = computed(() => {
+    const id = this.selectedProfessionalId();
+    if (!id) return 'Todos';
+    const prof = this.professionals().find(p => p.id === id);
+    return prof ? prof.name : 'Todos';
+  });
 
   readonly selectedProfessionalForBlock = computed(() => {
     const id = this.selectedProfessionalId();
@@ -311,6 +321,14 @@ export class AgendaComponent implements OnInit {
 
   closeBlockDrawer(): void {
     this.isBlockDrawerOpen.set(false);
+  }
+
+  openProfessionalFilterDrawer(): void {
+    this.isProfessionalFilterDrawerOpen.set(true);
+  }
+
+  closeProfessionalFilterDrawer(): void {
+    this.isProfessionalFilterDrawerOpen.set(false);
   }
 
   handleCreateTimeBlock(event: { professionalId: string; date: string; type: 'day' | 'range'; startTime: string; endTime: string }): void {

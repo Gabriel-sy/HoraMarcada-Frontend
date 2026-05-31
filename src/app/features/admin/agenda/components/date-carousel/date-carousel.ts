@@ -6,6 +6,7 @@ import { NgClass, DatePipe, SlicePipe } from '@angular/common';
   standalone: true,
   imports: [NgClass, DatePipe, SlicePipe],
   templateUrl: './date-carousel.html',
+  styleUrl: './date-carousel.css',
   host: {
     class: 'w-full flex items-center gap-3 relative'
   }

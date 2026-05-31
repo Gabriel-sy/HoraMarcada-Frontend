@@ -290,7 +290,7 @@ export class AgendaComponent implements OnInit {
   }
 
   getEffectiveStatus(appt: Appointment): AppointmentStatus {
-    if (appt.status === AppointmentStatus.Confirmed) {
+    if (appt.status === AppointmentStatus.Confirmed || appt.status === AppointmentStatus.ConfirmedByUser) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const apptDate = new Date(appt.startTime);
@@ -303,9 +303,10 @@ export class AgendaComponent implements OnInit {
 
   getAppointmentStatusLabel(status: AppointmentStatus): string {
     switch (status) {
-      case AppointmentStatus.Confirmed: return 'Confirmado';
+      case AppointmentStatus.Confirmed: return 'Agendado';
       case AppointmentStatus.Canceled: return 'Cancelado';
       case AppointmentStatus.Completed: return 'Concluído';
+      case AppointmentStatus.ConfirmedByUser: return 'Confirmado pelo Cliente';
       default: return 'Desconhecido';
     }
   }
@@ -315,6 +316,7 @@ export class AgendaComponent implements OnInit {
       case AppointmentStatus.Confirmed: return 'status-confirmed';
       case AppointmentStatus.Canceled: return 'status-canceled';
       case AppointmentStatus.Completed: return 'status-completed';
+      case AppointmentStatus.ConfirmedByUser: return 'status-user-confirmed';
       default: return '';
     }
   }

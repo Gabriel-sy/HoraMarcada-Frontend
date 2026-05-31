@@ -83,12 +83,16 @@
               </div>
             }
           </div>
-
-          <!-- <button (click)="resetFlow()" class="w-full py-4 px-6 bg-text-primary text-white font-semibold rounded-md text-sm hover:bg-[#1a1a1a] active:scale-[0.98] transition-all cursor-pointer">
-            Novo Agendamento
-          </button> -->
         </div>
       } @else {
+        @if (rescheduleMessage()) {
+          <div class="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm font-medium flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-amber-700 shrink-0">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+            <span>{{ rescheduleMessage() }}</span>
+          </div>
+        }
         <div class="w-full flex-1 flex flex-col" [class.hidden]="currentStep() !== 1" [ngClass]="transitionClass()">
           <div class="mb-1">
             <span class="store-brand-name">{{ store()?.name }}</span>

@@ -57,4 +57,8 @@ export class BookingApiService {
   cancelAppointmentByToken(input: CancelAppointmentByTokenInput): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/appointments/cancel-by-token`, input);
   }
+
+  confirmAppointmentByToken(cancelToken: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/appointments/confirm-by-token`, { cancelToken });
+  }
 }

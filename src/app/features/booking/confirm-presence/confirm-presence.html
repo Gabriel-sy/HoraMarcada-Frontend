@@ -1,0 +1,30 @@
+<div class="confirm-container">
+  <div class="confirm-card">
+    <div *ngIf="confirmState() === 'loading'" class="state-content">
+      <div class="spinner"></div>
+      <h2>Confirmando presença...</h2>
+      <p>Aguarde um instante enquanto atualizamos o seu agendamento.</p>
+    </div>
+
+    <div *ngIf="confirmState() === 'success'" class="state-content success-state">
+      <div class="icon-circle success-circle">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-8 h-8 text-emerald-600">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+        </svg>
+      </div>
+      <h2>Presença Confirmada!</h2>
+      <p>Sua presença foi confirmada com sucesso. Obrigado por nos avisar! Esperamos você no dia e horário agendados.</p>
+    </div>
+
+    <div *ngIf="confirmState() === 'error'" class="state-content error-state">
+      <div class="icon-circle error-circle">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8 text-red-600">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+        </svg>
+      </div>
+      <h2>Não foi possível confirmar</h2>
+      <p class="error-msg">{{ errorMessage() }}</p>
+      <p class="error-hint">Se o problema persistir, por favor entre em contato diretamente com o estabelecimento.</p>
+    </div>
+  </div>
+</div>

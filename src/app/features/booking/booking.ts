@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BookingApiService } from './services/booking-api.service';
 import { Store } from './models/store.model';
 import { NgClass } from '@angular/common';
@@ -18,6 +18,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 export class BookingComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly apiService = inject(BookingApiService);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -25,6 +26,7 @@ export class BookingComponent implements OnInit {
   store = signal<Store | null>(null);
   loading = signal<boolean>(true);
   error = signal<string | null>(null);
+  rescheduleMessage = signal<string | null>(null);
 
   mapUrl = computed(() => {
     const s = this.store();
@@ -56,6 +58,35 @@ export class BookingComponent implements OnInit {
       if (slugVal) {
         this.slug.set(slugVal);
         this.loadStoreBySlug(slugVal);
+
+        this.route.queryParamMap.subscribe(queryParams => {
+          const rescheduleToken = queryParams.get('reschedule');
+          if (rescheduleToken) {
+            this.handleReschedule(rescheduleToken);
+          }
+        });
+      }
+    });
+  }
+
+  private handleReschedule(token: string): void {
+    this.rescheduleMessage.set('Cancelando agendamento anterior...');
+    this.apiService.cancelAppointmentByToken({ cancelToken: token }).subscribe({
+      next: () => {
+        this.rescheduleMessage.set('Agendamento anterior cancelado. Escolha um novo horário abaixo!');
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { reschedule: null },
+          queryParamsHandling: 'merge'
+        });
+      },
+      error: () => {
+        this.rescheduleMessage.set('Não foi possível cancelar o agendamento anterior ou ele já foi cancelado. Você pode realizar um novo agendamento.');
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { reschedule: null },
+          queryParamsHandling: 'merge'
+        });
       }
     });
   }

@@ -1,7 +1,28 @@
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+.status-confirmed {
+  color: #171717;
+  background-color: #f5f5f5;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+
+.status-user-confirmed {
+  color: #065f46;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.status-canceled {
+  color: #991b1b;
+  background-color: #fef2f2;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.status-completed {
+  color: #374151;
+  background-color: #f3f4f6;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }

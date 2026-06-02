@@ -1,7 +1,7 @@
 import { Component, input, output } from '@angular/core';
-import { Appointment } from '../../../../booking/models/appointment.model';
-import { Service } from '../../../../booking/models/service.model';
-import { Professional } from '../../../../booking/models/professional.model';
+import { Appointment } from '../../../../../booking/models/appointment.model';
+import { Service } from '../../../../../booking/models/service.model';
+import { Professional } from '../../../../../booking/models/professional.model';
 
 @Component({
   selector: 'app-cancel-appointment-drawer',

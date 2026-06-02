@@ -1,7 +1,7 @@
 import { Component, effect, input, output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Professional } from '../../../../booking/models/professional.model';
+import { Professional } from '../../../../../booking/models/professional.model';
 import { WeeklyScheduleConfigComponent } from '../weekly-schedule-config/weekly-schedule-config';
 
 interface DayHoursConfig {

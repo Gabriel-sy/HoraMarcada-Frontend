@@ -1,8 +1,8 @@
 import { Component, effect, input, output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Service } from '../../../../booking/models/service.model';
-import { Professional } from '../../../../booking/models/professional.model';
+import { Service } from '../../../../../booking/models/service.model';
+import { Professional } from '../../../../../booking/models/professional.model';
 
 @Component({
   selector: 'app-service-form-drawer',

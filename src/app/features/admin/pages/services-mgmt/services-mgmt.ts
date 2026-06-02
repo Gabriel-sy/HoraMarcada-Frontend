@@ -1,12 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../../core/auth/auth.service';
-import { AdminApiService } from '../services/admin-api.service';
-import { Service } from '../../booking/models/service.model';
-import { Professional } from '../../booking/models/professional.model';
-import { SpinnerComponent } from '../../../../shared/components/spinner/spinner';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { AdminApiService } from '../../services/admin-api.service';
+import { AdminStateService } from '../../services/admin-state.service';
+import { Service } from '../../../booking/models/service.model';
+import { SpinnerComponent } from '../../../../../shared/components/spinner/spinner';
+import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { ServiceFormDrawerComponent } from './components/service-form-drawer/service-form-drawer';
 
 @Component({
@@ -19,10 +19,11 @@ import { ServiceFormDrawerComponent } from './components/service-form-drawer/ser
 export class ServicesMgmtComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly adminApiService = inject(AdminApiService);
+  private readonly stateService = inject(AdminStateService);
 
   readonly storeId = signal<string | null>(null);
-  readonly services = signal<Service[]>([]);
-  readonly professionals = signal<Professional[]>([]);
+  readonly services = this.stateService.services;
+  readonly professionals = this.stateService.professionals;
   readonly loading = signal<boolean>(false);
   readonly submitting = signal<boolean>(false);
   readonly error = signal<string | null>(null);
@@ -41,7 +42,7 @@ export class ServicesMgmtComponent implements OnInit {
       this.loading.set(false);
       return;
     }
-    this.adminApiService.getStoreByUserId(userId).subscribe({
+    this.stateService.loadStore(userId).subscribe({
       next: (store) => {
         this.storeId.set(store.id);
         this.loadServicesAndProfessionals(store.id);
@@ -54,9 +55,8 @@ export class ServicesMgmtComponent implements OnInit {
   }
 
   private loadServicesAndProfessionals(storeId: string): void {
-    this.adminApiService.getStoreServices(storeId, false).subscribe({
-      next: (services) => {
-        this.services.set(services);
+    this.stateService.loadServices(storeId).subscribe({
+      next: () => {
         this.loading.set(false);
       },
       error: () => {
@@ -65,11 +65,7 @@ export class ServicesMgmtComponent implements OnInit {
       }
     });
 
-    this.adminApiService.getStoreProfessionals(storeId).subscribe({
-      next: (profs) => {
-        this.professionals.set(profs);
-      }
-    });
+    this.stateService.loadProfessionals(storeId).subscribe();
   }
 
   openCreateForm(): void {
@@ -111,7 +107,7 @@ export class ServicesMgmtComponent implements OnInit {
         next: () => {
           this.submitting.set(false);
           this.closeForm();
-          this.loadServicesAndProfessionals(sId);
+          this.stateService.refreshServices(sId).subscribe();
         },
         error: () => {
           alert('Erro ao atualizar o serviço.');
@@ -123,7 +119,7 @@ export class ServicesMgmtComponent implements OnInit {
         next: () => {
           this.submitting.set(false);
           this.closeForm();
-          this.loadServicesAndProfessionals(sId);
+          this.stateService.refreshServices(sId).subscribe();
         },
         error: () => {
           alert('Erro ao adicionar o serviço.');
@@ -144,7 +140,7 @@ export class ServicesMgmtComponent implements OnInit {
         next: () => {
           this.submitting.set(false);
           this.closeForm();
-          this.loadServicesAndProfessionals(sId);
+          this.stateService.refreshServices(sId).subscribe();
         },
         error: () => {
           alert('Erro ao excluir o serviço. Verifique se existem agendamentos ativos vinculados a ele.');

@@ -3,19 +3,20 @@ import { NgClass, CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AuthService } from '../../../core/auth/auth.service';
-import { AdminApiService } from '../services/admin-api.service';
-import { BookingApiService } from '../../booking/services/booking-api.service';
-import { Professional } from '../../booking/models/professional.model';
-import { Service } from '../../booking/models/service.model';
-import { Appointment } from '../../booking/models/appointment.model';
-import { TimeBlock } from '../../booking/models/time-block.model';
-import { AppointmentStatus } from '../../booking/models/appointment-status.enum';
-import { SpinnerComponent } from '../../../../shared/components/spinner/spinner';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { AdminApiService } from '../../services/admin-api.service';
+import { BookingApiService } from '../../../booking/services/booking-api.service';
+import { AdminStateService } from '../../services/admin-state.service';
+import { Professional } from '../../../booking/models/professional.model';
+import { Service } from '../../../booking/models/service.model';
+import { Appointment } from '../../../booking/models/appointment.model';
+import { TimeBlock } from '../../../booking/models/time-block.model';
+import { AppointmentStatus } from '../../../booking/models/appointment-status.enum';
+import { SpinnerComponent } from '../../../../../shared/components/spinner/spinner';
+import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { DateCarouselComponent } from './components/date-carousel/date-carousel';
 import { CancelAppointmentDrawerComponent } from './components/cancel-appointment-drawer/cancel-appointment-drawer';
-import { TimeBlockDrawerComponent } from '../components/time-block-drawer/time-block-drawer';
+import { TimeBlockDrawerComponent } from '../../components/time-block-drawer/time-block-drawer';
 import { ProfessionalFilterDrawerComponent } from './components/professional-filter-drawer/professional-filter-drawer';
 
 @Component({
@@ -40,13 +41,14 @@ export class AgendaComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly adminApiService = inject(AdminApiService);
   private readonly bookingApiService = inject(BookingApiService);
+  private readonly stateService = inject(AdminStateService);
 
   readonly storeId = signal<string | null>(null);
-  readonly professionals = signal<Professional[]>([]);
-  readonly services = signal<Service[]>([]);
-  readonly appointments = signal<Appointment[]>([]);
-  readonly dayBlocks = signal<TimeBlock[]>([]);
-  readonly loading = signal<boolean>(false);
+  readonly professionals = this.stateService.professionals;
+  readonly services = this.stateService.services;
+  readonly appointments = this.stateService.agendaAppointments;
+  readonly dayBlocks = this.stateService.agendaTimeBlocks;
+  readonly loading = this.stateService.loadingAgenda;
   readonly error = signal<string | null>(null);
   readonly isCancelModalOpen = signal<boolean>(false);
   readonly appointmentToCancel = signal<Appointment | null>(null);
@@ -97,28 +99,25 @@ export class AgendaComponent implements OnInit {
   }
 
   private loadStoreData(): void {
-    this.loading.set(true);
     const userId = this.authService.userId();
     if (!userId) {
-      this.loading.set(false);
       return;
     }
-    this.adminApiService.getStoreByUserId(userId).subscribe({
+    this.stateService.loadStore(userId).subscribe({
       next: (store) => {
         this.storeId.set(store.id);
         this.loadCatalog(store.id);
       },
       error: () => {
         this.error.set('Erro ao carregar dados do estabelecimento.');
-        this.loading.set(false);
       }
     });
   }
 
   private loadCatalog(storeId: string): void {
-    this.adminApiService.getStoreProfessionals(storeId).subscribe({
-      next: (profs) => {
-        this.professionals.set(profs);
+    this.stateService.loadServices(storeId).subscribe();
+    this.stateService.loadProfessionals(storeId).subscribe({
+      next: () => {
         this.loadAppointments(storeId, this.selectedDate(), this.selectedProfessionalId());
 
         setTimeout(() => {
@@ -129,63 +128,13 @@ export class AgendaComponent implements OnInit {
         }, 100);
       }
     });
-
-    this.bookingApiService.getStoreServices(storeId).subscribe({
-      next: (svcs) => {
-        this.services.set(svcs);
-      }
-    });
   }
 
-  private loadAppointments(storeId: string, date: Date, professionalId: string | null): void {
-    this.loading.set(true);
+  private loadAppointments(storeId: string, date: Date, professionalId: string | null, forceRefresh = false): void {
     this.error.set(null);
-
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const startISO = startOfDay.toISOString();
-    const endISO = endOfDay.toISOString();
-
-    const appointments$ = this.adminApiService.getAppointments(storeId, startISO, endISO, professionalId);
-
-    const targetProfs = professionalId 
-      ? this.professionals().filter(p => p.id === professionalId) 
-      : this.professionals();
-
-    const blocksRequests = targetProfs.map(p => 
-      this.adminApiService.listTimeBlocks(storeId, p.id, startISO, endISO).pipe(
-        catchError(() => of([] as TimeBlock[]))
-      )
-    );
-
-    const timeBlocks$ = blocksRequests.length > 0 
-      ? forkJoin(blocksRequests) 
-      : of([] as TimeBlock[][]);
-
-    forkJoin({
-      appointments: appointments$,
-      timeBlocksGrouped: timeBlocks$
-    }).subscribe({
-      next: (res) => {
-        const sortedAppointments = [...res.appointments].sort(
-          (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-        );
-        this.appointments.set(sortedAppointments);
-
-        const flatBlocks = res.timeBlocksGrouped.reduce((acc, curr) => acc.concat(curr), []);
-        const sortedBlocks = flatBlocks.sort(
-          (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-        );
-        this.dayBlocks.set(sortedBlocks);
-
-        this.loading.set(false);
-      },
+    this.stateService.loadAgenda(storeId, date, professionalId, this.professionals(), forceRefresh).subscribe({
       error: () => {
         this.error.set('Não foi possível carregar os agendamentos.');
-        this.loading.set(false);
       }
     });
   }
@@ -270,7 +219,7 @@ export class AgendaComponent implements OnInit {
       next: () => {
         this.canceling.set(false);
         this.closeCancelModal();
-        this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId());
+        this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId(), true);
       },
       error: () => {
         this.cancelError.set('Erro ao cancelar agendamento. Por favor, tente novamente.');
@@ -374,7 +323,7 @@ export class AgendaComponent implements OnInit {
       next: () => {
         this.submittingBlock.set(false);
         this.closeBlockDrawer();
-        this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId());
+        this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId(), true);
       },
       error: () => {
         alert('Erro ao criar bloqueio de horário.');
@@ -388,14 +337,12 @@ export class AgendaComponent implements OnInit {
     if (!sId) return;
 
     if (confirm('Tem certeza de que deseja remover este bloqueio de horário?')) {
-      this.loading.set(true);
       this.adminApiService.deleteTimeBlock(sId, professionalId, blockId).subscribe({
         next: () => {
-          this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId());
+          this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId(), true);
         },
         error: () => {
           alert('Erro ao remover o bloqueio.');
-          this.loading.set(false);
         }
       });
     }

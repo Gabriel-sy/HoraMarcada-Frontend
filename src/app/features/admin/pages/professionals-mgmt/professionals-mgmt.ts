@@ -1,14 +1,15 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../../core/auth/auth.service';
-import { AdminApiService } from '../services/admin-api.service';
-import { Professional } from '../../booking/models/professional.model';
-import { TimeBlock } from '../../booking/models/time-block.model';
-import { SpinnerComponent } from '../../../../shared/components/spinner/spinner';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { AdminApiService } from '../../services/admin-api.service';
+import { AdminStateService } from '../../services/admin-state.service';
+import { Professional } from '../../../booking/models/professional.model';
+import { TimeBlock } from '../../../booking/models/time-block.model';
+import { SpinnerComponent } from '../../../../../shared/components/spinner/spinner';
+import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { ProfessionalFormDrawerComponent } from './components/professional-form-drawer/professional-form-drawer';
-import { TimeBlockDrawerComponent } from '../components/time-block-drawer/time-block-drawer';
+import { TimeBlockDrawerComponent } from '../../components/time-block-drawer/time-block-drawer';
 
 interface DayHoursConfig {
   active: boolean;
@@ -30,9 +31,10 @@ interface DayHoursConfig {
 export class ProfessionalsMgmtComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly adminApiService = inject(AdminApiService);
+  private readonly stateService = inject(AdminStateService);
 
   readonly storeId = signal<string | null>(null);
-  readonly professionals = signal<Professional[]>([]);
+  readonly professionals = this.stateService.professionals;
   readonly timeBlocks = signal<TimeBlock[]>([]);
   readonly loading = signal<boolean>(false);
   readonly loadingBlocks = signal<boolean>(false);
@@ -53,7 +55,7 @@ export class ProfessionalsMgmtComponent implements OnInit {
       this.loading.set(false);
       return;
     }
-    this.adminApiService.getStoreByUserId(userId).subscribe({
+    this.stateService.loadStore(userId).subscribe({
       next: (store) => {
         this.storeId.set(store.id);
         this.loadProfessionals(store.id);
@@ -65,15 +67,8 @@ export class ProfessionalsMgmtComponent implements OnInit {
   }
 
   private loadProfessionals(storeId: string): void {
-    this.adminApiService.getStoreProfessionals(storeId, false).subscribe({
-      next: (profs) => {
-        const sorted = [...profs].sort((a, b) => {
-          if (a.active !== b.active) {
-            return a.active ? -1 : 1;
-          }
-          return a.name.localeCompare(b.name);
-        });
-        this.professionals.set(sorted);
+    this.stateService.loadProfessionals(storeId).subscribe({
+      next: () => {
         this.loading.set(false);
       },
       error: () => {
@@ -230,9 +225,11 @@ export class ProfessionalsMgmtComponent implements OnInit {
       this.submitting.set(true);
       this.adminApiService.deactivateProfessional(sId, p.id).subscribe({
         next: () => {
-          this.submitting.set(false);
           this.closeDrawer();
-          this.loadProfessionals(sId);
+          this.stateService.refreshProfessionals(sId).subscribe({
+            next: () => this.submitting.set(false),
+            error: () => this.submitting.set(false)
+          });
         },
         error: () => {
           alert('Erro ao desativar o profissional.');
@@ -251,9 +248,11 @@ export class ProfessionalsMgmtComponent implements OnInit {
     if (p) {
       this.adminApiService.updateProfessional(sId, p.id, payload).subscribe({
         next: () => {
-          this.submitting.set(false);
           this.closeDrawer();
-          this.loadProfessionals(sId);
+          this.stateService.refreshProfessionals(sId).subscribe({
+            next: () => this.submitting.set(false),
+            error: () => this.submitting.set(false)
+          });
         },
         error: () => {
           alert('Erro ao atualizar profissional.');
@@ -263,9 +262,11 @@ export class ProfessionalsMgmtComponent implements OnInit {
     } else {
       this.adminApiService.addProfessional(sId, payload).subscribe({
         next: () => {
-          this.submitting.set(false);
           this.closeDrawer();
-          this.loadProfessionals(sId);
+          this.stateService.refreshProfessionals(sId).subscribe({
+            next: () => this.submitting.set(false),
+            error: () => this.submitting.set(false)
+          });
         },
         error: () => {
           alert('Erro ao adicionar profissional.');

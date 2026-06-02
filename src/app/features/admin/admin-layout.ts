@@ -1,8 +1,7 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet, Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
-import { AdminApiService } from './services/admin-api.service';
-import { Store } from '../booking/models/store.model';
+import { AdminStateService } from './services/admin-state.service';
 import { AdminSidebarComponent } from './components/admin-sidebar/admin-sidebar';
 import { AdminMobileNavComponent } from './components/admin-mobile-nav/admin-mobile-nav';
 import { SpinnerComponent } from '../../../shared/components/spinner/spinner';
@@ -16,12 +15,12 @@ import { SpinnerComponent } from '../../../shared/components/spinner/spinner';
 })
 export class AdminLayoutComponent implements OnInit {
   private readonly authService = inject(AuthService);
-  private readonly apiService = inject(AdminApiService);
+  private readonly stateService = inject(AdminStateService);
   private readonly router = inject(Router);
 
-  readonly store = signal<Store | null>(null);
-  readonly loading = signal<boolean>(true);
-  readonly error = signal<string | null>(null);
+  readonly store = this.stateService.store;
+  readonly loading = this.stateService.loadingStore;
+  readonly error = this.stateService.storeError;
 
   ngOnInit(): void {
     const userId = this.authService.userId();
@@ -33,18 +32,7 @@ export class AdminLayoutComponent implements OnInit {
   }
 
   private loadStore(userId: string): void {
-    this.loading.set(true);
-    this.error.set(null);
-    this.apiService.getStoreByUserId(userId).subscribe({
-      next: (res) => {
-        this.store.set(res);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set('Não foi possível carregar as informações do estabelecimento.');
-        this.loading.set(false);
-      }
-    });
+    this.stateService.loadStore(userId).subscribe();
   }
 
   retryLoad(): void {
@@ -55,6 +43,7 @@ export class AdminLayoutComponent implements OnInit {
   }
 
   logout(): void {
+    this.stateService.clearCache();
     this.authService.signOut().then(() => {
       this.router.navigate(['/login']);
     }).catch(() => {

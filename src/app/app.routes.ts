@@ -14,15 +14,19 @@ export const routes: Routes = [
       },
       {
         path: 'agenda',
-        loadComponent: () => import('./features/admin/agenda/agenda').then(m => m.AgendaComponent)
+        loadComponent: () => import('./features/admin/pages/agenda/agenda').then(m => m.AgendaComponent)
       },
       {
         path: 'servicos',
-        loadComponent: () => import('./features/admin/services-mgmt/services-mgmt').then(m => m.ServicesMgmtComponent)
+        loadComponent: () => import('./features/admin/pages/services-mgmt/services-mgmt').then(m => m.ServicesMgmtComponent)
       },
       {
         path: 'profissionais',
-        loadComponent: () => import('./features/admin/professionals-mgmt/professionals-mgmt').then(m => m.ProfessionalsMgmtComponent)
+        loadComponent: () => import('./features/admin/pages/professionals-mgmt/professionals-mgmt').then(m => m.ProfessionalsMgmtComponent)
+      },
+      {
+        path: 'estatisticas',
+        loadComponent: () => import('./features/admin/pages/statistics/statistics').then(m => m.StatisticsComponent)
       }
     ]
   },

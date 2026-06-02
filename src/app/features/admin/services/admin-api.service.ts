@@ -6,6 +6,7 @@ import { Professional } from '../../booking/models/professional.model';
 import { Appointment } from '../../booking/models/appointment.model';
 import { Service } from '../../booking/models/service.model';
 import { TimeBlock } from '../../booking/models/time-block.model';
+import { StoreStatisticsResponse } from '../models/statistics.model';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -90,5 +91,16 @@ export class AdminApiService {
 
   deleteTimeBlock(storeId: string, professionalId: string, blockId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/stores/${storeId}/professionals/${professionalId}/blocks/${blockId}`);
+  }
+
+  getStoreStatistics(storeId: string, startDate?: string, endDate?: string): Observable<StoreStatisticsResponse> {
+    let params = new HttpParams();
+    if (startDate) {
+      params = params.set('startDate', startDate);
+    }
+    if (endDate) {
+      params = params.set('endDate', endDate);
+    }
+    return this.http.get<StoreStatisticsResponse>(`${this.apiUrl}/stores/${storeId}/statistics`, { params });
   }
 }

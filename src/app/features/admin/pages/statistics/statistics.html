@@ -1,0 +1,126 @@
+<div class="flex flex-col gap-6">
+  <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-2xl font-bold text-text-primary m-0">Estatísticas</h1>
+      <p class="text-sm text-text-secondary m-0">Acompanhe o faturamento, agendamentos e ocupação do estabelecimento</p>
+    </div>
+    
+    <div class="flex gap-1.5 bg-neutral-100 p-1 rounded-xl self-start md:self-auto border border-border-light">
+      <button 
+        type="button" 
+        class="px-4 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-all duration-200 active:scale-[0.98]"
+        [ngClass]="selectedPreset() === 7 ? 'bg-white text-text-primary shadow-xs' : 'bg-transparent text-text-secondary hover:text-text-primary'"
+        (click)="setPreset(7)">
+        7 dias
+      </button>
+      <button 
+        type="button" 
+        class="px-4 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-all duration-200 active:scale-[0.98]"
+        [ngClass]="selectedPreset() === 15 ? 'bg-white text-text-primary shadow-xs' : 'bg-transparent text-text-secondary hover:text-text-primary'"
+        (click)="setPreset(15)">
+        15 dias
+      </button>
+      <button 
+        type="button" 
+        class="px-4 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-all duration-200 active:scale-[0.98]"
+        [ngClass]="selectedPreset() === 30 ? 'bg-white text-text-primary shadow-xs' : 'bg-transparent text-text-secondary hover:text-text-primary'"
+        (click)="setPreset(30)">
+        30 dias
+      </button>
+    </div>
+  </header>
+
+  @if (loading() && !statistics()) {
+    <app-spinner containerClass="flex justify-center items-center py-20"></app-spinner>
+  }
+
+  @if (error() && !loading()) {
+    <div class="flex flex-col items-center justify-center py-16 px-5 text-center">
+      <p class="text-red-600 text-sm mb-4 max-w-md">{{ error() }}</p>
+      <button 
+        type="button" 
+        class="px-4 py-2 bg-text-primary text-white border-none rounded-xl text-sm font-semibold cursor-pointer hover:bg-neutral-800 active:scale-[0.98]" 
+        (click)="loadStatistics()">
+        Tentar novamente
+      </button>
+    </div>
+  }
+
+  @if (statistics(); as stats) {
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div class="bg-white border border-border-light rounded-xl p-6 flex flex-col gap-1.5 shadow-2xs">
+        <span class="text-[10px] font-semibold text-text-secondary uppercase tracking-wider">Faturamento Estimado</span>
+        <span class="text-3xl font-extrabold text-text-primary">{{ formatCurrency(stats.estimatedRevenue) }}</span>
+        <span class="text-xs text-text-muted">Total de agendamentos ativos</span>
+      </div>
+
+      <div class="bg-white border border-border-light rounded-xl p-6 flex flex-col gap-1.5 shadow-2xs">
+        <span class="text-[10px] font-semibold text-text-secondary uppercase tracking-wider">Agendamentos Realizados</span>
+        <span class="text-3xl font-extrabold text-text-primary">{{ stats.totalAppointments }}</span>
+        <span class="text-xs text-text-muted">Excluindo cancelamentos</span>
+      </div>
+
+      <div class="bg-white border border-border-light rounded-xl p-6 flex flex-col gap-1.5 shadow-2xs">
+        <span class="text-[10px] font-semibold text-text-secondary uppercase tracking-wider">Ticket Médio</span>
+        <span class="text-3xl font-extrabold text-text-primary">{{ formatCurrency(averageTicket()) }}</span>
+        <span class="text-xs text-text-muted">Valor médio por atendimento</span>
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-6">
+      <div class="bg-white border border-border-light rounded-xl p-6 shadow-2xs flex flex-col gap-4">
+        <div class="flex flex-col">
+          <h2 class="text-base font-bold text-text-primary m-0">Evolução de Agendamentos</h2>
+          <p class="text-xs text-text-secondary m-0">Quantidade de agendamentos diários realizados nos últimos 15 dias</p>
+        </div>
+        <div class="relative w-full overflow-hidden">
+          <div #dailyChart class="w-full h-72"></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white border border-border-light rounded-xl p-6 shadow-2xs flex flex-col gap-4">
+          <div class="flex flex-col">
+            <h2 class="text-base font-bold text-text-primary m-0">Serviços mais Procurados</h2>
+            <p class="text-xs text-text-secondary m-0">Distribuição percentual por número de agendamentos no período</p>
+          </div>
+          <div class="relative w-full overflow-hidden">
+            @if (stats.mostPopularServices.length === 0) {
+              <div class="h-64 flex items-center justify-center text-xs text-text-secondary italic">Sem dados de serviços</div>
+            } @else {
+              <div #servicesChart class="w-full h-64"></div>
+            }
+          </div>
+        </div>
+
+        <div class="bg-white border border-border-light rounded-xl p-6 shadow-2xs flex flex-col gap-4">
+          <div class="flex flex-col">
+            <h2 class="text-base font-bold text-text-primary m-0">Faturamento por Serviço</h2>
+            <p class="text-xs text-text-secondary m-0">Receita total gerada por cada serviço no período selecionado</p>
+          </div>
+          <div class="relative w-full overflow-hidden">
+            @if (stats.mostPopularServices.length === 0) {
+              <div class="h-64 flex items-center justify-center text-xs text-text-secondary italic">Sem dados de faturamento</div>
+            } @else {
+              <div #revenueChart class="w-full h-64"></div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-border-light rounded-xl p-6 shadow-2xs flex flex-col gap-4">
+        <div class="flex flex-col">
+          <h2 class="text-base font-bold text-text-primary m-0">Ocupação de Profissionais</h2>
+          <p class="text-xs text-text-secondary m-0">Tempo acumulado em horas de atendimento prestadas por profissional</p>
+        </div>
+        <div class="relative w-full overflow-hidden">
+          @if (stats.professionalOccupation.length === 0) {
+            <div class="h-64 flex items-center justify-center text-xs text-text-secondary italic">Sem dados de profissionais</div>
+          } @else {
+            <div #professionalsChart class="w-full h-64"></div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+</div>

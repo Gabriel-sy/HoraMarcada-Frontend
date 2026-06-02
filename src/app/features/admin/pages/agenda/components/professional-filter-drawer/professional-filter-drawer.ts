@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
-import { Professional } from '../../../../booking/models/professional.model';
-import { SelectionCardComponent } from '../../../../../../shared/components/selection-card/selection-card';
+import { Professional } from '../../../../../booking/models/professional.model';
+import { SelectionCardComponent } from '../../../../../../../shared/components/selection-card/selection-card';
 
 @Component({
   selector: 'app-professional-filter-drawer',

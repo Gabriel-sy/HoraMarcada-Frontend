@@ -19,6 +19,7 @@ import { CancelAppointmentDrawerComponent } from './components/cancel-appointmen
 import { TimeBlockDrawerComponent } from '../../components/time-block-drawer/time-block-drawer';
 import { ProfessionalFilterDrawerComponent } from './components/professional-filter-drawer/professional-filter-drawer';
 import { ToastService } from '../../../../../shared/services/toast.service';
+import { CreateAppointmentDrawerComponent } from './components/create-appointment-drawer/create-appointment-drawer';
 
 @Component({
   selector: 'app-agenda',
@@ -32,7 +33,8 @@ import { ToastService } from '../../../../../shared/services/toast.service';
     DateCarouselComponent,
     CancelAppointmentDrawerComponent,
     TimeBlockDrawerComponent,
-    ProfessionalFilterDrawerComponent
+    ProfessionalFilterDrawerComponent,
+    CreateAppointmentDrawerComponent
   ],
   templateUrl: './agenda.html',
   styleUrl: './agenda.css',
@@ -65,6 +67,9 @@ export class AgendaComponent implements OnInit {
   readonly isBlockDrawerOpen = signal<boolean>(false);
   readonly submittingBlock = signal<boolean>(false);
   readonly isProfessionalFilterDrawerOpen = signal<boolean>(false);
+  readonly isCreateDrawerOpen = signal<boolean>(false);
+  readonly submittingCreate = signal<boolean>(false);
+  readonly createError = signal<string | null>(null);
 
   readonly selectedProfessionalName = computed(() => {
     const id = this.selectedProfessionalId();
@@ -286,6 +291,55 @@ export class AgendaComponent implements OnInit {
 
   closeProfessionalFilterDrawer(): void {
     this.isProfessionalFilterDrawerOpen.set(false);
+  }
+
+  openCreateDrawer(): void {
+    this.isCreateDrawerOpen.set(true);
+    this.createError.set(null);
+  }
+
+  closeCreateDrawer(): void {
+    this.isCreateDrawerOpen.set(false);
+    this.createError.set(null);
+  }
+
+  handleCreateAppointment(event: {
+    customerName: string;
+    customerWhatsApp: string;
+    customerEmail: string;
+    serviceId: string;
+    professionalId: string;
+    startTime: string;
+  }): void {
+    const sId = this.storeId();
+    if (!sId) return;
+
+    this.submittingCreate.set(true);
+    this.createError.set(null);
+
+    const input = {
+      storeId: sId,
+      professionalId: event.professionalId,
+      serviceId: event.serviceId,
+      customerName: event.customerName,
+      customerWhatsApp: event.customerWhatsApp,
+      customerEmail: event.customerEmail,
+      startTime: event.startTime
+    };
+
+    this.bookingApiService.bookAppointment(input).subscribe({
+      next: () => {
+        this.submittingCreate.set(false);
+        this.closeCreateDrawer();
+        this.toastService.success('Agendamento criado com sucesso.');
+        this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId(), true);
+      },
+      error: (err) => {
+        const message = err.error?.detail || err.error?.title || 'Erro ao criar agendamento.';
+        this.createError.set(message);
+        this.submittingCreate.set(false);
+      }
+    });
   }
 
   handleCreateTimeBlock(event: { professionalId: string; date: string; type: 'day' | 'range'; startTime: string; endTime: string }): void {

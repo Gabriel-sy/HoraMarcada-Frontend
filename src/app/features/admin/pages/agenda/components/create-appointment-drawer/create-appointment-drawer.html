@@ -1,0 +1,202 @@
+<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 ease-in-out opacity-0"
+     [class.opacity-0]="!isOpen()"
+     [class.opacity-100]="isOpen()"
+     (click)="onClose()"></div>
+
+<div class="fixed bg-white shadow-2xl transition-transform duration-300 ease-in-out z-50 flex flex-col
+            bottom-0 left-0 right-0 h-[85vh] rounded-t-2xl w-full
+            md:top-0 md:bottom-0 md:right-0 md:left-auto md:h-full md:w-md md:rounded-l-2xl md:rounded-tr-none
+            translate-y-full md:translate-y-0 md:translate-x-full"
+     [class.translate-y-full]="!isOpen()"
+     [class.md:translate-x-full]="!isOpen()"
+     [class.translate-y-0]="isOpen()"
+     [class.md:translate-x-0]="isOpen()">
+
+  <div class="flex justify-between items-center p-6 border-b border-border-light shrink-0">
+    <div>
+      <h3 class="m-0 text-lg font-bold text-text-primary">
+        Novo Agendamento
+      </h3>
+      <p class="m-0 text-xs text-text-secondary mt-1">Agende um serviço manualmente para um cliente</p>
+    </div>
+    <button 
+      type="button" 
+      class="bg-transparent border-none text-2xl cursor-pointer text-text-secondary hover:text-text-primary leading-none transition-colors" 
+      (click)="onClose()">
+      &times;
+    </button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+    <div class="flex flex-col gap-4">
+      <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Dados do Cliente</h4>
+      <form [formGroup]="form" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1.5">
+          <app-input
+            id="client-name"
+            formControlName="name"
+            label="Nome Completo"
+            placeholder=" ">
+          </app-input>
+          @if (form.get('name')?.touched && form.get('name')?.invalid) {
+            <span class="text-xs text-red-600 font-medium px-1">O nome do cliente é obrigatório.</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <app-input
+            id="client-whatsapp"
+            formControlName="whatsapp"
+            label="WhatsApp"
+            placeholder=" ">
+          </app-input>
+          @if (form.get('whatsapp')?.touched && form.get('whatsapp')?.invalid) {
+            <span class="text-xs text-red-600 font-medium px-1">Insira um número de WhatsApp válido com DDD (ex: (11) 99999-9999).</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <app-input
+            id="client-email"
+            formControlName="email"
+            type="email"
+            label="E-mail"
+            placeholder=" ">
+          </app-input>
+          @if (form.get('email')?.touched && form.get('email')?.invalid) {
+            <span class="text-xs text-red-600 font-medium px-1">Insira um e-mail válido.</span>
+          }
+        </div>
+      </form>
+    </div>
+
+    <div class="border-t border-border-light"></div>
+
+    <div class="flex flex-col gap-3">
+      <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Serviço</h4>
+      <div class="flex flex-col gap-3">
+        @for (service of services(); track service.id) {
+          <app-selection-card
+            [selected]="selectedServiceId() === service.id"
+            (select)="selectService(service)">
+            <div card-content>
+              <h5 class="font-semibold text-text-primary text-sm m-0">{{ service.name }}</h5>
+              <p class="text-xs text-text-secondary mt-1 m-0">
+                {{ service.durationMinutes }} min • {{ formatPrice(service.price) }}
+              </p>
+            </div>
+          </app-selection-card>
+        } @empty {
+          <p class="text-sm text-text-secondary m-0">Nenhum serviço disponível.</p>
+        }
+      </div>
+    </div>
+
+    <div class="border-t border-border-light"></div>
+
+    <div class="flex flex-col gap-3">
+      <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Profissional</h4>
+      @if (!selectedServiceId()) {
+        <div class="p-4 bg-neutral-50 border border-border-light rounded-xl text-center">
+          <p class="text-xs text-text-secondary m-0">Selecione um serviço primeiro para carregar os profissionais.</p>
+        </div>
+      } @else {
+        <div class="flex flex-col gap-3">
+          @for (professional of filteredProfessionals(); track professional.id) {
+            <app-selection-card
+              [selected]="selectedProfessionalId() === professional.id"
+              (select)="selectProfessional(professional)">
+              <div card-content class="flex items-center gap-3">
+                @if (professional.photoUrl) {
+                  <img [src]="professional.photoUrl" class="w-8 h-8 rounded-full object-cover" [alt]="professional.name" />
+                } @else {
+                  <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-text-secondary font-semibold text-xs">
+                    {{ professional.name.charAt(0).toUpperCase() }}
+                  </div>
+                }
+                <h5 class="font-semibold text-text-primary text-sm m-0">{{ professional.name }}</h5>
+              </div>
+            </app-selection-card>
+          } @empty {
+            <p class="text-xs text-text-secondary m-0">Nenhum profissional disponível para este serviço.</p>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="border-t border-border-light"></div>
+
+    <div class="flex flex-col gap-3">
+      <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Data</h4>
+      <input 
+        type="date" 
+        [value]="selectedDateString()" 
+        (change)="onDateChange($event)"
+        class="w-full px-4 py-3 border border-border-light rounded-xl text-sm text-text-primary focus:border-text-primary focus:outline-none bg-white font-sans" />
+    </div>
+
+    <div class="border-t border-border-light"></div>
+
+    <div class="flex flex-col gap-3">
+      <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Horários Disponíveis</h4>
+      @if (!selectedServiceId() || !selectedProfessionalId()) {
+        <div class="p-4 bg-neutral-50 border border-border-light rounded-xl text-center">
+          <p class="text-xs text-text-secondary m-0">Selecione o serviço e o profissional para consultar horários.</p>
+        </div>
+      } @else if (loadingSlots()) {
+        <div class="flex justify-center items-center py-6">
+          <div class="w-5 h-5 border-2 border-text-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      } @else if (slotsError()) {
+        <div class="p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl text-xs font-medium">
+          {{ slotsError() }}
+        </div>
+      } @else {
+        @if (slots().length > 0) {
+          <div class="grid grid-cols-4 gap-2">
+            @for (slot of slots(); track slot) {
+              <button
+                type="button"
+                (click)="selectSlot(slot)"
+                [class]="'py-2.5 border text-xs font-bold rounded-lg text-center cursor-pointer transition-all duration-200 ' +
+                         (selectedTime() === slot ? 'border-text-primary bg-accent-light text-text-primary' : 'border-border-light hover:border-text-primary bg-white text-text-primary')">
+                {{ formatTime(slot) }}
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="p-4 bg-neutral-50 border border-border-light rounded-xl text-center">
+            <p class="text-xs text-text-secondary m-0">Não há horários disponíveis para este dia.</p>
+          </div>
+        }
+      }
+    </div>
+
+    @if (error()) {
+      <div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold">
+        {{ error() }}
+      </div>
+    }
+  </div>
+
+  <div class="flex flex-col gap-3 p-6 border-t border-border-light bg-neutral-50 shrink-0">
+    <app-button
+      type="button"
+      [disabled]="form.invalid || !selectedServiceId() || !selectedProfessionalId() || !selectedTime() || submitting()"
+      variant="accent"
+      (click)="onSubmit()">
+      @if (submitting()) {
+        <div class="w-5 h-5 border-2 border-text-primary border-t-transparent rounded-full animate-spin"></div>
+      } @else {
+        Confirmar Agendamento
+      }
+    </app-button>
+    <button 
+      type="button" 
+      class="w-full py-3 bg-transparent border border-border-light rounded-xl text-sm font-semibold text-text-secondary cursor-pointer hover:bg-white transition-all active:scale-[0.98]" 
+      (click)="onClose()">
+      Cancelar
+    </button>
+  </div>
+
+</div>

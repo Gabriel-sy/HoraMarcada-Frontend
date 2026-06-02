@@ -10,6 +10,7 @@ import { SpinnerComponent } from '../../../../../shared/components/spinner/spinn
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { ProfessionalFormDrawerComponent } from './components/professional-form-drawer/professional-form-drawer';
 import { TimeBlockDrawerComponent } from '../../components/time-block-drawer/time-block-drawer';
+import { ToastService } from '../../../../../shared/services/toast.service';
 
 interface DayHoursConfig {
   active: boolean;
@@ -32,6 +33,7 @@ export class ProfessionalsMgmtComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly adminApiService = inject(AdminApiService);
   private readonly stateService = inject(AdminStateService);
+  private readonly toastService = inject(ToastService);
 
   readonly storeId = signal<string | null>(null);
   readonly professionals = this.stateService.professionals;
@@ -176,7 +178,7 @@ export class ProfessionalsMgmtComponent implements OnInit {
       const dateEnd = new Date(year, month - 1, day, endH, endM, 0, 0);
 
       if (dateEnd <= dateStart) {
-        alert('O horário de término deve ser posterior ao horário de início.');
+        this.toastService.error('O horário de término deve ser posterior ao horário de início.');
         return;
       }
 
@@ -191,10 +193,11 @@ export class ProfessionalsMgmtComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.submitting.set(false);
+        this.toastService.success('Bloqueio de horário criado com sucesso.');
         this.handleLoadBlocks(payload.professionalId);
       },
       error: () => {
-        alert('Erro ao criar bloqueio de horário.');
+        this.toastService.error('Erro ao criar bloqueio de horário.');
         this.submitting.set(false);
       }
     });
@@ -204,16 +207,15 @@ export class ProfessionalsMgmtComponent implements OnInit {
     const sId = this.storeId();
     if (!sId) return;
 
-    if (confirm('Tem certeza de que deseja remover este bloqueio de horário?')) {
-      this.adminApiService.deleteTimeBlock(sId, event.professionalId, event.blockId).subscribe({
-        next: () => {
-          this.handleLoadBlocks(event.professionalId);
-        },
-        error: () => {
-          alert('Erro ao remover o bloqueio.');
-        }
-      });
-    }
+    this.adminApiService.deleteTimeBlock(sId, event.professionalId, event.blockId).subscribe({
+      next: () => {
+        this.toastService.success('Bloqueio de horário removido com sucesso.');
+        this.handleLoadBlocks(event.professionalId);
+      },
+      error: () => {
+        this.toastService.error('Erro ao remover o bloqueio.');
+      }
+    });
   }
 
   deactivateProfessional(): void {
@@ -221,22 +223,21 @@ export class ProfessionalsMgmtComponent implements OnInit {
     const p = this.selectedProfessional();
     if (!sId || !p) return;
 
-    if (confirm(`Tem certeza de que deseja desativar o profissional "${p.name}"? Ele não receberá novos agendamentos.`)) {
-      this.submitting.set(true);
-      this.adminApiService.deactivateProfessional(sId, p.id).subscribe({
-        next: () => {
-          this.closeDrawer();
-          this.stateService.refreshProfessionals(sId).subscribe({
-            next: () => this.submitting.set(false),
-            error: () => this.submitting.set(false)
-          });
-        },
-        error: () => {
-          alert('Erro ao desativar o profissional.');
-          this.submitting.set(false);
-        }
-      });
-    }
+    this.submitting.set(true);
+    this.adminApiService.deactivateProfessional(sId, p.id).subscribe({
+      next: () => {
+        this.closeDrawer();
+        this.toastService.success('Profissional desativado com sucesso.');
+        this.stateService.refreshProfessionals(sId).subscribe({
+          next: () => this.submitting.set(false),
+          error: () => this.submitting.set(false)
+        });
+      },
+      error: () => {
+        this.toastService.error('Erro ao desativar o profissional.');
+        this.submitting.set(false);
+      }
+    });
   }
 
   handleSaveProfessional(payload: any): void {
@@ -249,13 +250,14 @@ export class ProfessionalsMgmtComponent implements OnInit {
       this.adminApiService.updateProfessional(sId, p.id, payload).subscribe({
         next: () => {
           this.closeDrawer();
+          this.toastService.success('Profissional atualizado com sucesso.');
           this.stateService.refreshProfessionals(sId).subscribe({
             next: () => this.submitting.set(false),
             error: () => this.submitting.set(false)
           });
         },
         error: () => {
-          alert('Erro ao atualizar profissional.');
+          this.toastService.error('Erro ao atualizar profissional.');
           this.submitting.set(false);
         }
       });
@@ -263,13 +265,14 @@ export class ProfessionalsMgmtComponent implements OnInit {
       this.adminApiService.addProfessional(sId, payload).subscribe({
         next: () => {
           this.closeDrawer();
+          this.toastService.success('Profissional adicionado com sucesso.');
           this.stateService.refreshProfessionals(sId).subscribe({
             next: () => this.submitting.set(false),
             error: () => this.submitting.set(false)
           });
         },
         error: () => {
-          alert('Erro ao adicionar profissional.');
+          this.toastService.error('Erro ao adicionar profissional.');
           this.submitting.set(false);
         }
       });

@@ -1,8 +1,9 @@
-import { Component, effect, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Service } from '../../../../../booking/models/service.model';
 import { Professional } from '../../../../../booking/models/professional.model';
+import { ToastService } from '../../../../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-service-form-drawer',
@@ -19,6 +20,8 @@ import { Professional } from '../../../../../booking/models/professional.model';
   }
 })
 export class ServiceFormDrawerComponent {
+  private readonly toastService = inject(ToastService);
+
   isOpen = input.required<boolean>();
   submitting = input.required<boolean>();
   service = input<Service | null>(null);
@@ -76,11 +79,11 @@ export class ServiceFormDrawerComponent {
 
   submitForm(): void {
     if (!this.formName().trim()) {
-      alert('O nome do serviço é obrigatório.');
+      this.toastService.error('O nome do serviço é obrigatório.');
       return;
     }
     if (this.formDuration() <= 0) {
-      alert('A duração deve ser maior que zero.');
+      this.toastService.error('A duração deve ser maior que zero.');
       return;
     }
 

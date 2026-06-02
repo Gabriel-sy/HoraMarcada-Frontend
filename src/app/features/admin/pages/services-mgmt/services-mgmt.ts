@@ -8,6 +8,7 @@ import { Service } from '../../../booking/models/service.model';
 import { SpinnerComponent } from '../../../../../shared/components/spinner/spinner';
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { ServiceFormDrawerComponent } from './components/service-form-drawer/service-form-drawer';
+import { ToastService } from '../../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-services-mgmt',
@@ -20,6 +21,7 @@ export class ServicesMgmtComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly adminApiService = inject(AdminApiService);
   private readonly stateService = inject(AdminStateService);
+  private readonly toastService = inject(ToastService);
 
   readonly storeId = signal<string | null>(null);
   readonly services = this.stateService.services;
@@ -107,10 +109,11 @@ export class ServicesMgmtComponent implements OnInit {
         next: () => {
           this.submitting.set(false);
           this.closeForm();
+          this.toastService.success('Serviço atualizado com sucesso.');
           this.stateService.refreshServices(sId).subscribe();
         },
         error: () => {
-          alert('Erro ao atualizar o serviço.');
+          this.toastService.error('Erro ao atualizar o serviço.');
           this.submitting.set(false);
         }
       });
@@ -119,10 +122,11 @@ export class ServicesMgmtComponent implements OnInit {
         next: () => {
           this.submitting.set(false);
           this.closeForm();
+          this.toastService.success('Serviço adicionado com sucesso.');
           this.stateService.refreshServices(sId).subscribe();
         },
         error: () => {
-          alert('Erro ao adicionar o serviço.');
+          this.toastService.error('Erro ao adicionar o serviço.');
           this.submitting.set(false);
         }
       });
@@ -134,19 +138,18 @@ export class ServicesMgmtComponent implements OnInit {
     const service = this.selectedService();
     if (!sId || !service) return;
 
-    if (confirm(`Tem certeza de que deseja EXCLUIR permanentemente o serviço "${service.name}"? Esta ação não pode ser desfeita.`)) {
-      this.submitting.set(true);
-      this.adminApiService.deleteService(sId, service.id).subscribe({
-        next: () => {
-          this.submitting.set(false);
-          this.closeForm();
-          this.stateService.refreshServices(sId).subscribe();
-        },
-        error: () => {
-          alert('Erro ao excluir o serviço. Verifique se existem agendamentos ativos vinculados a ele.');
-          this.submitting.set(false);
-        }
-      });
-    }
+    this.submitting.set(true);
+    this.adminApiService.deleteService(sId, service.id).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.closeForm();
+        this.toastService.success('Serviço excluído com sucesso.');
+        this.stateService.refreshServices(sId).subscribe();
+      },
+      error: () => {
+        this.toastService.error('Erro ao excluir o serviço. Verifique se existem agendamentos ativos vinculados a ele.');
+        this.submitting.set(false);
+      }
+    });
   }
 }

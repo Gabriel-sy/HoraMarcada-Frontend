@@ -1,8 +1,9 @@
-import { Component, effect, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Professional } from '../../../../../booking/models/professional.model';
 import { WeeklyScheduleConfigComponent } from '../weekly-schedule-config/weekly-schedule-config';
+import { ToastService } from '../../../../../../../shared/services/toast.service';
 
 interface DayHoursConfig {
   active: boolean;
@@ -29,6 +30,8 @@ interface DayHoursConfig {
   }
 })
 export class ProfessionalFormDrawerComponent {
+  private readonly toastService = inject(ToastService);
+
   isOpen = input.required<boolean>();
   submitting = input.required<boolean>();
   professional = input<Professional | null>(null);
@@ -118,7 +121,7 @@ export class ProfessionalFormDrawerComponent {
 
   submitForm(): void {
     if (!this.formName().trim()) {
-      alert('O nome do profissional é obrigatório.');
+      this.toastService.error('O nome do profissional é obrigatório.');
       return;
     }
 

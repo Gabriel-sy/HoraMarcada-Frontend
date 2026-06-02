@@ -1,8 +1,9 @@
-import { Component, effect, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { NgClass, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Professional } from '../../../booking/models/professional.model';
 import { TimeBlock } from '../../../booking/models/time-block.model';
+import { ToastService } from '../../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-time-block-drawer',
@@ -19,6 +20,8 @@ import { TimeBlock } from '../../../booking/models/time-block.model';
   }
 })
 export class TimeBlockDrawerComponent {
+  private readonly toastService = inject(ToastService);
+
   isOpen = input.required<boolean>();
   submitting = input.required<boolean>();
   professionals = input.required<Professional[]>();
@@ -74,11 +77,11 @@ export class TimeBlockDrawerComponent {
   addTimeBlock(): void {
     const pId = this.blockProfessionalId();
     if (!pId) {
-      alert('Selecione um profissional.');
+      this.toastService.error('Selecione um profissional.');
       return;
     }
     if (!this.blockDate()) {
-      alert('Selecione uma data para o bloqueio.');
+      this.toastService.error('Selecione uma data para o bloqueio.');
       return;
     }
     this.createBlock.emit({

@@ -18,6 +18,7 @@ import { DateCarouselComponent } from './components/date-carousel/date-carousel'
 import { CancelAppointmentDrawerComponent } from './components/cancel-appointment-drawer/cancel-appointment-drawer';
 import { TimeBlockDrawerComponent } from '../../components/time-block-drawer/time-block-drawer';
 import { ProfessionalFilterDrawerComponent } from './components/professional-filter-drawer/professional-filter-drawer';
+import { ToastService } from '../../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-agenda',
@@ -42,6 +43,7 @@ export class AgendaComponent implements OnInit {
   private readonly adminApiService = inject(AdminApiService);
   private readonly bookingApiService = inject(BookingApiService);
   private readonly stateService = inject(AdminStateService);
+  private readonly toastService = inject(ToastService);
 
   readonly storeId = signal<string | null>(null);
   readonly professionals = this.stateService.professionals;
@@ -307,7 +309,7 @@ export class AgendaComponent implements OnInit {
       const dateEnd = new Date(year, month - 1, day, endH, endM, 0, 0);
 
       if (dateEnd <= dateStart) {
-        alert('O horário de término deve ser posterior ao horário de início.');
+        this.toastService.error('O horário de término deve ser posterior ao horário de início.');
         return;
       }
 
@@ -323,10 +325,11 @@ export class AgendaComponent implements OnInit {
       next: () => {
         this.submittingBlock.set(false);
         this.closeBlockDrawer();
+        this.toastService.success('Bloqueio de horário criado com sucesso.');
         this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId(), true);
       },
       error: () => {
-        alert('Erro ao criar bloqueio de horário.');
+        this.toastService.error('Erro ao criar bloqueio de horário.');
         this.submittingBlock.set(false);
       }
     });
@@ -336,16 +339,15 @@ export class AgendaComponent implements OnInit {
     const sId = this.storeId();
     if (!sId) return;
 
-    if (confirm('Tem certeza de que deseja remover este bloqueio de horário?')) {
-      this.adminApiService.deleteTimeBlock(sId, professionalId, blockId).subscribe({
-        next: () => {
-          this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId(), true);
-        },
-        error: () => {
-          alert('Erro ao remover o bloqueio.');
-        }
-      });
-    }
+    this.adminApiService.deleteTimeBlock(sId, professionalId, blockId).subscribe({
+      next: () => {
+        this.toastService.success('Bloqueio de horário removido com sucesso.');
+        this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId(), true);
+      },
+      error: () => {
+        this.toastService.error('Erro ao remover o bloqueio.');
+      }
+    });
   }
 
   formatBlockRangeTime(startISO: string, endISO: string): string {

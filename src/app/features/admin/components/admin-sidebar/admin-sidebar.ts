@@ -8,7 +8,7 @@ import { Store } from '../../../booking/models/store.model';
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './admin-sidebar.html',
   host: {
-    class: 'hidden md:flex md:w-60 md:flex-col md:shrink-0 md:border-r md:border-border-light bg-white'
+    class: 'hidden md:flex md:h-screen md:sticky md:top-0 md:w-60 md:flex-col md:shrink-0 md:border-r md:border-border-light bg-white'
   }
 })
 export class AdminSidebarComponent {

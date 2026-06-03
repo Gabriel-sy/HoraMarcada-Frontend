@@ -8,6 +8,8 @@ import { Appointment } from '../../booking/models/appointment.model';
 import { TimeBlock } from '../../booking/models/time-block.model';
 import { StoreStatisticsResponse } from '../models/statistics.model';
 import { AdminApiService } from './admin-api.service';
+import { CustomerListDto, PagedResult } from '../../booking/models/customer.model';
+
 
 @Injectable({
   providedIn: 'root'
@@ -21,16 +23,26 @@ export class AdminStateService {
   private readonly _agendaAppointments = signal<Appointment[]>([]);
   private readonly _agendaTimeBlocks = signal<TimeBlock[]>([]);
   private readonly _statistics = signal<StoreStatisticsResponse | null>(null);
+  private readonly _customers = signal<CustomerListDto[]>([]);
 
   private readonly _loadingStore = signal<boolean>(false);
   private readonly _loadingServices = signal<boolean>(false);
   private readonly _loadingProfessionals = signal<boolean>(false);
   private readonly _loadingAgenda = signal<boolean>(false);
   private readonly _loadingStatistics = signal<boolean>(false);
+  private readonly _loadingCustomers = signal<boolean>(false);
 
   private readonly _storeError = signal<string | null>(null);
   private readonly _agendaCacheKey = signal<string | null>(null);
   private readonly _statisticsCacheKey = signal<string | null>(null);
+  private readonly _customersCacheKey = signal<string | null>(null);
+  private readonly _totalCustomers = signal<number>(0);
+  private readonly _customersPage = signal<number>(1);
+
+  private readonly _customersPageSize = signal<number>(10);
+  private readonly _customersSearchQuery = signal<string>('');
+  private readonly _selectedCustomerId = signal<string | null>(null);
+  private readonly _isCustomersDrawerOpen = signal<boolean>(false);
 
   readonly store = this._store.asReadonly();
   readonly services = this._services.asReadonly();
@@ -38,14 +50,23 @@ export class AdminStateService {
   readonly agendaAppointments = this._agendaAppointments.asReadonly();
   readonly agendaTimeBlocks = this._agendaTimeBlocks.asReadonly();
   readonly statistics = this._statistics.asReadonly();
+  readonly customers = this._customers.asReadonly();
 
   readonly loadingStore = this._loadingStore.asReadonly();
   readonly loadingServices = this._loadingServices.asReadonly();
   readonly loadingProfessionals = this._loadingProfessionals.asReadonly();
   readonly loadingAgenda = this._loadingAgenda.asReadonly();
   readonly loadingStatistics = this._loadingStatistics.asReadonly();
+  readonly loadingCustomers = this._loadingCustomers.asReadonly();
 
   readonly storeError = this._storeError.asReadonly();
+  readonly totalCustomers = this._totalCustomers.asReadonly();
+  readonly customersPage = this._customersPage.asReadonly();
+  readonly customersPageSize = this._customersPageSize.asReadonly();
+  readonly customersSearchQuery = this._customersSearchQuery.asReadonly();
+  readonly selectedCustomerId = this._selectedCustomerId.asReadonly();
+  readonly isCustomersDrawerOpen = this._isCustomersDrawerOpen.asReadonly();
+
 
   loadStore(userId: string): Observable<Store> {
     const cached = this._store();
@@ -215,6 +236,62 @@ export class AdminStateService {
     return this.loadProfessionals(storeId, true);
   }
 
+  setCustomersSearchQuery(query: string): void {
+    this._customersSearchQuery.set(query);
+  }
+
+  setCustomersPage(page: number): void {
+    this._customersPage.set(page);
+  }
+
+  setCustomersPageSize(size: number): void {
+    this._customersPageSize.set(size);
+  }
+
+  setSelectedCustomerId(id: string | null): void {
+    this._selectedCustomerId.set(id);
+  }
+
+  setIsCustomersDrawerOpen(isOpen: boolean): void {
+    this._isCustomersDrawerOpen.set(isOpen);
+  }
+
+  loadCustomers(storeId: string, append = false, forceRefresh = false): Observable<PagedResult<CustomerListDto>> {
+    const search = this._customersSearchQuery().trim() || null;
+    const page = this._customersPage();
+    const pageSize = this._customersPageSize();
+
+    const cacheKey = `${storeId}_${search || ''}_${page}_${pageSize}`;
+    if (this._customers().length > 0 && this._customersCacheKey() === cacheKey && !forceRefresh && !append) {
+      return of({
+        items: this._customers(),
+        totalCount: this._totalCustomers(),
+        page,
+        pageSize
+      });
+    }
+
+    this._loadingCustomers.set(true);
+
+    return this.apiService.getCustomers(storeId, search, page, pageSize).pipe(
+      tap({
+        next: (res) => {
+          if (append) {
+            this._customers.update(prev => [...prev, ...res.items]);
+          } else {
+            this._customers.set(res.items);
+          }
+          this._totalCustomers.set(res.totalCount);
+          this._customersCacheKey.set(cacheKey);
+          this._loadingCustomers.set(false);
+        },
+        error: () => {
+          this._loadingCustomers.set(false);
+        }
+      })
+    );
+  }
+
   clearCache(): void {
     this._store.set(null);
     this._services.set([]);
@@ -224,5 +301,16 @@ export class AdminStateService {
     this._statistics.set(null);
     this._agendaCacheKey.set(null);
     this._statisticsCacheKey.set(null);
+    this._customersCacheKey.set(null);
+    this._customers.set([]);
+    this._loadingCustomers.set(false);
+    this._totalCustomers.set(0);
+    this._customersPage.set(1);
+    this._customersPageSize.set(10);
+    this._customersSearchQuery.set('');
+    this._selectedCustomerId.set(null);
+    this._isCustomersDrawerOpen.set(false);
   }
+
+
 }

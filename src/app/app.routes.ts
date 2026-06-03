@@ -17,6 +17,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/pages/agenda/agenda').then(m => m.AgendaComponent)
       },
       {
+        path: 'clientes',
+        loadComponent: () => import('./features/admin/pages/clientes/clientes').then(m => m.ClientesComponent)
+      },
+      {
         path: 'servicos',
         loadComponent: () => import('./features/admin/pages/services-mgmt/services-mgmt').then(m => m.ServicesMgmtComponent)
       },

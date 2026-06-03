@@ -7,6 +7,7 @@ import { Appointment } from '../../booking/models/appointment.model';
 import { Service } from '../../booking/models/service.model';
 import { TimeBlock } from '../../booking/models/time-block.model';
 import { StoreStatisticsResponse } from '../models/statistics.model';
+import { CustomerListDto, CustomerDetailDto, UpdateCustomerInput, PagedResult } from '../../booking/models/customer.model';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -102,5 +103,30 @@ export class AdminApiService {
       params = params.set('endDate', endDate);
     }
     return this.http.get<StoreStatisticsResponse>(`${this.apiUrl}/stores/${storeId}/statistics`, { params });
+  }
+
+  getCustomers(
+    storeId: string,
+    search?: string | null,
+    page = 1,
+    pageSize = 10
+  ): Observable<PagedResult<CustomerListDto>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
+
+    if (search) {
+      params = params.set('search', search);
+    }
+
+    return this.http.get<PagedResult<CustomerListDto>>(`${this.apiUrl}/stores/${storeId}/customers`, { params });
+  }
+
+  getCustomerDetails(storeId: string, customerId: string): Observable<CustomerDetailDto> {
+    return this.http.get<CustomerDetailDto>(`${this.apiUrl}/stores/${storeId}/customers/${customerId}`);
+  }
+
+  updateCustomer(storeId: string, customerId: string, input: UpdateCustomerInput): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/stores/${storeId}/customers/${customerId}`, input);
   }
 }

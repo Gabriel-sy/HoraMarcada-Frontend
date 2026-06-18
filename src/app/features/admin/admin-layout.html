@@ -2,7 +2,7 @@
   <app-admin-sidebar [store]="store()" (logout)="logout()"></app-admin-sidebar>
 
   <main class="flex-1 flex flex-col min-w-0">
-    <div class="flex-1 p-6 pb-24 md:p-10 max-w-5xl w-full mx-auto box-border">
+    <div class="flex-1 p-6 pb-24 md:p-10 w-full box-border" [class.max-w-5xl]="!isFullWidth()" [class.mx-auto]="!isFullWidth()">
       @if (!loading() && !error()) {
         <router-outlet></router-outlet>
       }

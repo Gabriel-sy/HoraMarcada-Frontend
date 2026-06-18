@@ -41,6 +41,8 @@ export class CreateAppointmentDrawerComponent implements OnDestroy {
   isOpen = input.required<boolean>();
   submitting = input<boolean>(false);
   error = input<string | null>(null);
+  preselectedProfessionalId = input<string | null>(null);
+  preselectedTime = input<string | null>(null);
 
   confirm = output<{
     customerName: string;
@@ -220,6 +222,14 @@ export class CreateAppointmentDrawerComponent implements OnDestroy {
       next: (res) => {
         this.slots.set(res || []);
         this.loadingSlots.set(false);
+
+        const preTime = this.preselectedTime();
+        if (preTime && res) {
+          const matchingSlot = res.find(slot => this.formatTime(slot) === preTime);
+          if (matchingSlot) {
+            this.selectedTime.set(matchingSlot);
+          }
+        }
       },
       error: () => {
         this.slotsError.set('Não foi possível carregar os horários. Tente novamente.');
@@ -236,9 +246,10 @@ export class CreateAppointmentDrawerComponent implements OnDestroy {
       email: ''
     });
     this.selectedServiceId.set(null);
-    this.selectedProfessionalId.set(null);
+    this.selectedProfessionalId.set(this.preselectedProfessionalId() || null);
     this.selectedTime.set(null);
     this.slots.set([]);
     this.slotsError.set(null);
   }
 }
+

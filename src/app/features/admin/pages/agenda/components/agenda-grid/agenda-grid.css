@@ -1,0 +1,91 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.agenda-grid-container {
+  display: grid;
+  align-items: stretch;
+}
+
+.status-confirmed {
+  border-left: 4px solid #3b82f6;
+  background-color: #eff6ff;
+  color: #1e3a8a;
+}
+.status-confirmed:hover {
+  background-color: #dbeafe;
+}
+
+.status-user-confirmed {
+  border-left: 4px solid #10b981;
+  background-color: #ecfdf5;
+  color: #064e3b;
+}
+.status-user-confirmed:hover {
+  background-color: #d1fae5;
+}
+
+.status-canceled {
+  border-left: 4px solid #ef4444;
+  background-color: #fef2f2;
+  color: #7f1d1d;
+  opacity: 0.7;
+}
+.status-canceled:hover {
+  background-color: #fee2e2;
+}
+
+.status-completed {
+  border-left: 4px solid #6b7280;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  opacity: 0.85;
+}
+.status-completed:hover {
+  background-color: #e5e7eb;
+}
+
+
+.agenda-grid-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.agenda-grid-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.agenda-grid-container::-webkit-scrollbar-thumb {
+  background: var(--color-border-light);
+  border-radius: 9999px;
+}
+.agenda-grid-container::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+.blocked-card {
+  background: repeating-linear-gradient(
+    45deg,
+    #f9fafb,
+    #f9fafb 10px,
+    #f3f4f6 10px,
+    #f3f4f6 20px
+  );
+  border: 1px dashed #d1d5db;
+}
+
+.off-hours-folga {
+  background-color: #faf5ff;
+  color: #7e22ce;
+}
+
+.off-hours-almoco {
+  background-color: #fefbeb;
+  color: #b45309;
+}
+
+.off-hours-fora {
+  background-color: #f8fafc;
+  color: #64748b;
+}
+
+

@@ -49,6 +49,12 @@ export class AdminApiService {
     return this.http.post<void>(`${this.apiUrl}/appointments/${appointmentId}/cancel`, { storeId });
   }
 
+  getAppointmentById(appointmentId: string, storeId: string): Observable<Appointment> {
+    return this.http.get<Appointment>(`${this.apiUrl}/appointments/${appointmentId}`, {
+      params: new HttpParams().set('storeId', storeId)
+    });
+  }
+
   getStoreServices(storeId: string, activeOnly = false): Observable<Service[]> {
     return this.http.get<Service[]>(`${this.apiUrl}/stores/${storeId}/services`, {
       params: new HttpParams().set('activeOnly', activeOnly.toString())

@@ -1,14 +1,16 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, tap, of, forkJoin, map } from 'rxjs';
+import { Observable, tap, of, forkJoin, map, firstValueFrom } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Store } from '../../booking/models/store.model';
 import { Professional } from '../../booking/models/professional.model';
 import { Service } from '../../booking/models/service.model';
 import { Appointment } from '../../booking/models/appointment.model';
+import { AppointmentStatus } from '../../booking/models/appointment-status.enum';
 import { TimeBlock } from '../../booking/models/time-block.model';
 import { StoreStatisticsResponse } from '../models/statistics.model';
 import { AdminApiService } from './admin-api.service';
 import { CustomerListDto, PagedResult } from '../../booking/models/customer.model';
+import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 
 @Injectable({
@@ -234,6 +236,41 @@ export class AdminStateService {
 
   refreshProfessionals(storeId: string): Observable<Professional[]> {
     return this.loadProfessionals(storeId, true);
+  }
+
+  async applyRealtimeEvent(
+    payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>,
+    storeId: string
+  ): Promise<{ appointment: Appointment | null; eventType: string }> {
+    const { eventType } = payload;
+
+    const record = payload.new as Record<string, unknown>;
+    const appointmentId = record?.['id'] as string | undefined;
+    if (!appointmentId) return { appointment: null, eventType };
+
+    let appt: Appointment | null = null;
+    try {
+      appt = await firstValueFrom(this.apiService.getAppointmentById(appointmentId, storeId));
+    } catch {
+      return { appointment: null, eventType };
+    }
+
+    if (appt) {
+      if (eventType === 'INSERT') {
+        this._agendaAppointments.update(prev =>
+          [...prev, appt!].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+        );
+      }
+      if (eventType === 'UPDATE') {
+        this._agendaAppointments.update(prev =>
+          prev.map(a => a.id === appt!.id ? appt! : a)
+        );
+      }
+      this._agendaCacheKey.set(null);
+    }
+
+    const isCancellation = eventType === 'UPDATE' && appt.status === AppointmentStatus.Canceled;
+    return { appointment: appt, eventType: isCancellation ? 'CANCEL' : eventType };
   }
 
   setCustomersSearchQuery(query: string): void {

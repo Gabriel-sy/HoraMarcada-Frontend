@@ -13,6 +13,10 @@ export class AuthService {
   readonly userId = signal<string | null>(null);
   readonly initialized = signal<boolean>(false);
 
+  get client(): SupabaseClient {
+    return this.supabase;
+  }
+
   constructor() {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
 

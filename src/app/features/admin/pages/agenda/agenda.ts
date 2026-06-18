@@ -1,8 +1,10 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { NgClass, CommonModule, DatePipe } from '@angular/common';
+import { Component, OnInit, inject, signal, computed, effect, DestroyRef } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { SupabaseRealtimeService } from '../../../../core/realtime/supabase-realtime.service';
+import { NotificationSoundService } from '../../../../core/notification-sound/notification-sound.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { AdminApiService } from '../../services/admin-api.service';
 import { BookingApiService } from '../../../booking/services/booking-api.service';
@@ -20,13 +22,16 @@ import { TimeBlockDrawerComponent } from '../../components/time-block-drawer/tim
 import { ProfessionalFilterDrawerComponent } from './components/professional-filter-drawer/professional-filter-drawer';
 import { ToastService } from '../../../../../shared/services/toast.service';
 import { CreateAppointmentDrawerComponent } from './components/create-appointment-drawer/create-appointment-drawer';
+import { AgendaSidebarComponent } from './components/agenda-sidebar/agenda-sidebar';
+import { AgendaGridComponent } from './components/agenda-grid/agenda-grid';
+import { AgendaMobileFeedComponent } from './components/agenda-mobile-feed/agenda-mobile-feed';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-agenda',
   standalone: true,
   imports: [
     CommonModule,
-    NgClass,
     FormsModule,
     SpinnerComponent,
     EmptyStateComponent,
@@ -34,7 +39,10 @@ import { CreateAppointmentDrawerComponent } from './components/create-appointmen
     CancelAppointmentDrawerComponent,
     TimeBlockDrawerComponent,
     ProfessionalFilterDrawerComponent,
-    CreateAppointmentDrawerComponent
+    CreateAppointmentDrawerComponent,
+    AgendaSidebarComponent,
+    AgendaGridComponent,
+    AgendaMobileFeedComponent
   ],
   templateUrl: './agenda.html',
   styleUrl: './agenda.css',
@@ -46,6 +54,10 @@ export class AgendaComponent implements OnInit {
   private readonly bookingApiService = inject(BookingApiService);
   private readonly stateService = inject(AdminStateService);
   private readonly toastService = inject(ToastService);
+  private readonly realtimeService = inject(SupabaseRealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly soundService = inject(NotificationSoundService);
+  private readonly datePipe = inject(DatePipe);
 
   readonly storeId = signal<string | null>(null);
   readonly professionals = this.stateService.professionals;
@@ -71,6 +83,182 @@ export class AgendaComponent implements OnInit {
   readonly submittingCreate = signal<boolean>(false);
   readonly createError = signal<string | null>(null);
 
+  readonly selectedSidebarProfessionalIds = signal<string[]>([]);
+  readonly preselectedProfessionalId = signal<string | null>(null);
+  readonly preselectedTime = signal<string | null>(null);
+
+  readonly activeProfessionalsList = computed(() => {
+    const selectedIds = this.selectedSidebarProfessionalIds();
+    return this.professionals().filter(p => selectedIds.includes(p.id));
+  });
+
+  readonly timeSlots = computed(() => {
+    const date = this.selectedDate();
+    const dayOfWeek = date.getDay();
+    const profs = this.professionals();
+    const selectedIds = this.selectedSidebarProfessionalIds();
+
+    let minHour = 8;
+    let maxHour = 20;
+    let hasCustomHours = false;
+
+    const schedulesForDay = profs
+      .filter(p => selectedIds.includes(p.id))
+      .flatMap(p => p.weeklySchedules || [])
+      .filter(s => s.dayOfWeek === dayOfWeek);
+
+    if (schedulesForDay.length > 0) {
+      let earliest = 24 * 60;
+      let latest = 0;
+      for (const sched of schedulesForDay) {
+        const [startH, startM] = sched.startTime.split(':').map(Number);
+        const [endH, endM] = sched.endTime.split(':').map(Number);
+        const startMin = startH * 60 + startM;
+        const endMin = endH * 60 + endM;
+        if (startMin < earliest) earliest = startMin;
+        if (endMin > latest) latest = endMin;
+      }
+      minHour = Math.floor(earliest / 60);
+      maxHour = Math.ceil(latest / 60);
+      hasCustomHours = true;
+    }
+
+    if (!hasCustomHours) {
+      minHour = 8;
+      maxHour = 20;
+    }
+
+    const list: string[] = [];
+    for (let h = minHour; h < maxHour; h++) {
+      list.push(`${String(h).padStart(2, '0')}:00`);
+      list.push(`${String(h).padStart(2, '0')}:30`);
+    }
+    list.push(`${String(maxHour).padStart(2, '0')}:00`);
+    return list;
+  });
+
+  readonly gridData = computed(() => {
+    const slots = this.timeSlots();
+    const selectedIds = this.selectedSidebarProfessionalIds();
+    const profs = this.professionals().filter(p => selectedIds.includes(p.id));
+    const appts = this.appointments();
+    const blocks = this.dayBlocks();
+    const date = this.selectedDate();
+    const dayOfWeek = date.getDay();
+
+    const result = new Map<string, { [time: string]: any }>();
+
+    for (const prof of profs) {
+      const profCells: { [time: string]: any } = {};
+      const sched = prof.weeklySchedules?.find(s => s.dayOfWeek === dayOfWeek);
+
+      const pAppts = appts.filter(a => a.professionalId === prof.id);
+      const pBlocks = blocks.filter(b => b.professionalId === prof.id);
+
+      const busyTimes = new Set<string>();
+
+      for (const appt of pAppts) {
+        const start = new Date(appt.startTime);
+        const startStr = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+        
+        const svc = this.services().find(s => s.id === appt.serviceId);
+        const durationMin = svc ? svc.durationMinutes : 30;
+        const slotsCount = Math.max(1, Math.ceil(durationMin / 30));
+
+        profCells[startStr] = {
+          type: 'appointment',
+          data: appt,
+          durationSlots: slotsCount
+        };
+
+        const currentMin = start.getHours() * 60 + start.getMinutes();
+        for (let i = 1; i < slotsCount; i++) {
+          const m = currentMin + i * 30;
+          const hStr = String(Math.floor(m / 60)).padStart(2, '0');
+          const mStr = String(m % 60).padStart(2, '0');
+          busyTimes.add(`${hStr}:${mStr}`);
+        }
+      }
+
+      for (const block of pBlocks) {
+        const start = new Date(block.startTime);
+        const end = new Date(block.endTime);
+        const startStr = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+        
+        const durationMs = end.getTime() - start.getTime();
+        const durationMin = Math.round(durationMs / 60000);
+        const slotsCount = Math.max(1, Math.ceil(durationMin / 30));
+
+        profCells[startStr] = {
+          type: 'block',
+          data: block,
+          durationSlots: slotsCount
+        };
+
+        const currentMin = start.getHours() * 60 + start.getMinutes();
+        for (let i = 1; i < slotsCount; i++) {
+          const m = currentMin + i * 30;
+          const hStr = String(Math.floor(m / 60)).padStart(2, '0');
+          const mStr = String(m % 60).padStart(2, '0');
+          busyTimes.add(`${hStr}:${mStr}`);
+        }
+      }
+
+      for (const slot of slots) {
+        if (profCells[slot]) {
+          continue;
+        }
+
+        if (busyTimes.has(slot)) {
+          profCells[slot] = { type: 'span' };
+          continue;
+        }
+
+        if (!sched) {
+          profCells[slot] = { type: 'off-hours', label: 'Folga' };
+          continue;
+        }
+
+        const [slotH, slotM] = slot.split(':').map(Number);
+        const slotMin = slotH * 60 + slotM;
+
+        const [startH, startM] = sched.startTime.split(':').map(Number);
+        const [endH, endM] = sched.endTime.split(':').map(Number);
+        const startMin = startH * 60 + startM;
+        const endMin = endH * 60 + endM;
+
+        const lunchStartMin = sched.lunchStart ? sched.lunchStart.split(':').map(Number)[0] * 60 + sched.lunchStart.split(':').map(Number)[1] : null;
+        const lunchEndMin = sched.lunchEnd ? sched.lunchEnd.split(':').map(Number)[0] * 60 + sched.lunchEnd.split(':').map(Number)[1] : null;
+
+        if (slotMin < startMin || slotMin >= endMin) {
+          profCells[slot] = { type: 'off-hours', label: 'Fora de Expediente' };
+        } else if (lunchStartMin !== null && lunchEndMin !== null && slotMin >= lunchStartMin && slotMin < lunchEndMin) {
+          profCells[slot] = { type: 'off-hours', label: 'Almoço' };
+        } else {
+          profCells[slot] = { type: 'empty', time: slot };
+        }
+      }
+
+      result.set(prof.id, profCells);
+    }
+
+    return result;
+  });
+
+  readonly mobileAgendaItems = computed(() => {
+    const appts = this.appointments().map(appt => ({
+      type: 'appointment' as const,
+      time: new Date(appt.startTime).getTime(),
+      data: appt
+    }));
+    const blocks = this.dayBlocks().map(block => ({
+      type: 'block' as const,
+      time: new Date(block.startTime).getTime(),
+      data: block
+    }));
+    return [...appts, ...blocks].sort((a, b) => a.time - b.time);
+  });
+
   readonly selectedProfessionalName = computed(() => {
     const id = this.selectedProfessionalId();
     if (!id) return 'Todos';
@@ -82,6 +270,46 @@ export class AgendaComponent implements OnInit {
     const id = this.selectedProfessionalId();
     return this.professionals().find(p => p.id === id) || null;
   });
+
+  constructor() {
+    effect(() => {
+      const profs = this.professionals();
+      if (profs.length > 0 && this.selectedSidebarProfessionalIds().length === 0) {
+        this.selectedSidebarProfessionalIds.set(profs.map(p => p.id));
+      }
+    }, { allowSignalWrites: true });
+
+    effect(() => {
+      const selectedIds = this.selectedSidebarProfessionalIds();
+      const currentSingleId = this.selectedProfessionalId();
+      if (selectedIds.length === 1) {
+        if (currentSingleId !== selectedIds[0]) {
+          this.selectedProfessionalId.set(selectedIds[0]);
+        }
+      } else {
+        if (currentSingleId !== null) {
+          this.selectedProfessionalId.set(null);
+        }
+      }
+    }, { allowSignalWrites: true });
+
+    effect(() => {
+      const singleId = this.selectedProfessionalId();
+      const sidebarIds = this.selectedSidebarProfessionalIds();
+      const profs = this.professionals();
+      if (profs.length > 0) {
+        if (singleId) {
+          if (sidebarIds.length !== 1 || sidebarIds[0] !== singleId) {
+            this.selectedSidebarProfessionalIds.set([singleId]);
+          }
+        } else {
+          if (sidebarIds.length === 1) {
+            this.selectedSidebarProfessionalIds.set(profs.map(p => p.id));
+          }
+        }
+      }
+    }, { allowSignalWrites: true });
+  }
 
   private generateInitialDateRange(): Date[] {
     const range: Date[] = [];
@@ -114,11 +342,53 @@ export class AgendaComponent implements OnInit {
       next: (store) => {
         this.storeId.set(store.id);
         this.loadCatalog(store.id);
+        this.subscribeToRealtimeAppointments(store.id);
       },
       error: () => {
         this.error.set('Erro ao carregar dados do estabelecimento.');
       }
     });
+  }
+
+  private subscribeToRealtimeAppointments(storeId: string): void {
+    this.realtimeService.watchAppointments(storeId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(async payload => {
+        const record = (payload.new ?? payload.old) as { start_time?: string } | null;
+        console.log(record);
+        if (!record?.start_time) {
+          return;
+        }
+        const eventDate = new Date(record.start_time);
+        const selected = this.selectedDate();
+        const isSameDay =
+          eventDate.getFullYear() === selected.getFullYear() &&
+          eventDate.getMonth() === selected.getMonth() &&
+          eventDate.getDate() === selected.getDate();
+        if (!isSameDay) {
+          return;
+        }
+        const { appointment, eventType } = await this.stateService.applyRealtimeEvent(payload, storeId);
+        this.soundService.play();
+        const msg = this.buildRealtimeToastMessage(appointment);
+        if (eventType === 'INSERT') {
+          this.toastService.success("Novo agendamento para " + msg, 10000);
+        } else if (eventType === 'UPDATE') {
+          this.toastService.info("Agendamento atualizado para " + msg, 10000);
+        } else if (eventType === 'CANCEL') {
+          this.toastService.error("Agendamento cancelado para " + msg, 10000);
+        }
+      });
+  }
+
+  private buildRealtimeToastMessage(appt: Appointment | null): string {
+    if (!appt) return 'Agendamento atualizado.';
+    const time = this.datePipe.transform(appt.startTime, 'HH:mm') ?? '';
+    const prof = this.professionals().find(p => p.id === appt.professionalId);
+    const parts = [appt.customerName];
+    if (time) parts.push(`às ${time}`);
+    if (prof) parts.push(`com ${prof.name}`);
+    return parts.join(' ');
   }
 
   private loadCatalog(storeId: string): void {
@@ -178,30 +448,6 @@ export class AgendaComponent implements OnInit {
     this.selectDate(next);
   }
 
-  getProfessionalName(profId: string): string {
-    const prof = this.professionals().find(p => p.id === profId);
-    return prof ? prof.name : 'Profissional';
-  }
-
-  getServiceName(svcId: string): string {
-    const svc = this.services().find(s => s.id === svcId);
-    return svc ? svc.name : 'Serviço';
-  }
-
-  formatTime(isoString: string): string {
-    const d = new Date(isoString);
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
-  }
-
-  isToday(date: Date): boolean {
-    const today = new Date();
-    return date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear();
-  }
-
   cancelAppointment(appt: Appointment): void {
     this.appointmentToCancel.set(appt);
     this.cancelError.set(null);
@@ -235,47 +481,6 @@ export class AgendaComponent implements OnInit {
     });
   }
 
-  getService(svcId: string): Service | undefined {
-    return this.services().find(s => s.id === svcId);
-  }
-
-  formatPrice(priceValue: any): string {
-    if (priceValue === null || priceValue === undefined) return 'Sob consulta';
-    const amount = typeof priceValue === 'object' ? priceValue.amount : priceValue;
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
-  }
-
-  getEffectiveStatus(appt: Appointment): AppointmentStatus {
-    if (appt.status === AppointmentStatus.Confirmed || appt.status === AppointmentStatus.ConfirmedByUser) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const apptDate = new Date(appt.startTime);
-      if (apptDate < today) {
-        return AppointmentStatus.Completed;
-      }
-    }
-    return appt.status;
-  }
-
-  getAppointmentStatusLabel(status: AppointmentStatus): string {
-    switch (status) {
-      case AppointmentStatus.Confirmed: return 'Agendado';
-      case AppointmentStatus.Canceled: return 'Cancelado';
-      case AppointmentStatus.Completed: return 'Concluído';
-      case AppointmentStatus.ConfirmedByUser: return 'Confirmado pelo Cliente';
-      default: return 'Desconhecido';
-    }
-  }
-
-  getAppointmentStatusClass(status: AppointmentStatus): string {
-    switch (status) {
-      case AppointmentStatus.Confirmed: return 'status-confirmed';
-      case AppointmentStatus.Canceled: return 'status-canceled';
-      case AppointmentStatus.Completed: return 'status-completed';
-      case AppointmentStatus.ConfirmedByUser: return 'status-user-confirmed';
-      default: return '';
-    }
-  }
 
   openBlockDrawer(): void {
     this.isBlockDrawerOpen.set(true);
@@ -300,6 +505,15 @@ export class AgendaComponent implements OnInit {
 
   closeCreateDrawer(): void {
     this.isCreateDrawerOpen.set(false);
+    this.createError.set(null);
+    this.preselectedProfessionalId.set(null);
+    this.preselectedTime.set(null);
+  }
+
+  openCreateDrawerWithPreselection(professionalId: string, time: string): void {
+    this.preselectedProfessionalId.set(professionalId);
+    this.preselectedTime.set(time);
+    this.isCreateDrawerOpen.set(true);
     this.createError.set(null);
   }
 
@@ -404,11 +618,4 @@ export class AgendaComponent implements OnInit {
     });
   }
 
-  formatBlockRangeTime(startISO: string, endISO: string): string {
-    const start = new Date(startISO);
-    const end = new Date(endISO);
-    const isFullDay = start.getHours() === 0 && start.getMinutes() === 0 && end.getHours() === 23 && end.getMinutes() === 59;
-    if (isFullDay) return 'Dia Inteiro';
-    return `${this.formatTime(startISO)} - ${this.formatTime(endISO)}`;
-  }
 }

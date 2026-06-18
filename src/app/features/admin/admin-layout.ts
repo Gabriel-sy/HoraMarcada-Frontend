@@ -1,5 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { RouterOutlet, Router } from '@angular/router';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { RouterOutlet, Router, NavigationEnd, Event } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/auth.service';
 import { AdminStateService } from './services/admin-state.service';
 import { AdminSidebarComponent } from './components/admin-sidebar/admin-sidebar';
@@ -22,6 +23,8 @@ export class AdminLayoutComponent implements OnInit {
   readonly loading = this.stateService.loadingStore;
   readonly error = this.stateService.storeError;
 
+  readonly isFullWidth = signal<boolean>(false);
+
   ngOnInit(): void {
     const userId = this.authService.userId();
     if (userId) {
@@ -29,6 +32,13 @@ export class AdminLayoutComponent implements OnInit {
     } else {
       this.router.navigate(['/login']);
     }
+
+    this.router.events.pipe(
+      filter((e: Event): e is NavigationEnd => e instanceof NavigationEnd)
+    ).subscribe((e: NavigationEnd) => {
+      this.isFullWidth.set(e.urlAfterRedirects.includes('/admin/agenda'));
+    });
+    this.isFullWidth.set(this.router.url.includes('/admin/agenda'));
   }
 
   private loadStore(userId: string): void {

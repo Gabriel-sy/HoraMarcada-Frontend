@@ -14,7 +14,8 @@ import { Professional } from '../../../../../booking/models/professional.model';
     '[class.visible]': 'isOpen()',
     '[class.pointer-events-none]': '!isOpen()',
     '[class.pointer-events-auto]': 'isOpen()',
-    '[class.delay-300]': '!isOpen()'
+    '[class.delay-300]': '!isOpen()',
+    '[class.md:delay-0]': '!isOpen()'
   }
 })
 export class CancelAppointmentDrawerComponent {

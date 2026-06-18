@@ -1,0 +1,53 @@
+<div class="flex flex-col gap-6 w-full h-full">
+  <div class="flex flex-col gap-2">
+    <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-secondary select-none">
+      Selecionar Data
+    </h4>
+    <app-mini-calendar 
+      [selectedDate]="selectedDate()" 
+      (dateChange)="selectDate($event)">
+    </app-mini-calendar>
+  </div>
+
+  <div class="border-t border-border-light w-full"></div>
+
+  <div class="flex flex-col gap-3">
+    <div class="flex items-center justify-between">
+      <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-secondary select-none">
+        Profissionais
+      </h4>
+      <button 
+        type="button" 
+        (click)="toggleAll()" 
+        class="bg-transparent border-none text-[11px] font-semibold text-text-secondary hover:text-text-primary cursor-pointer transition-colors">
+        {{ isAllSelected() ? 'Desmarcar Todos' : 'Marcar Todos' }}
+      </button>
+    </div>
+
+    <div class="flex flex-col gap-1.5 max-h-[350px] overflow-y-auto pr-1">
+      @for (prof of professionals(); track prof.id) {
+        <label 
+          (click)="$event.preventDefault(); toggleProfessional(prof.id)"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent hover:border-border-light hover:bg-neutral-50 cursor-pointer transition-all duration-200 select-none">
+          <input 
+            type="checkbox" 
+            [checked]="isSelected(prof.id)"
+            class="w-4 h-4 rounded text-text-primary focus:ring-text-primary border-border-light cursor-pointer" />
+          
+          <div class="flex items-center gap-2">
+            @if (prof.photoUrl) {
+              <img [src]="prof.photoUrl" class="w-6 h-6 rounded-full object-cover shrink-0" [alt]="prof.name" />
+            } @else {
+              <div class="w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-[10px] font-bold text-text-secondary shrink-0 select-none">
+                {{ prof.name.charAt(0).toUpperCase() }}
+              </div>
+            }
+            <span class="text-sm font-semibold text-text-primary truncate max-w-[150px]">
+              {{ prof.name }}
+            </span>
+          </div>
+        </label>
+      }
+    </div>
+  </div>
+</div>

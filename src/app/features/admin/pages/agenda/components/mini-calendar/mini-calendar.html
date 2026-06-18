@@ -1,0 +1,47 @@
+<div class="flex flex-col gap-3 w-full bg-white p-3 border border-border-light rounded-xl shadow-xs">
+  <div class="flex items-center justify-between">
+    <span class="text-xs font-bold text-text-primary capitalize">
+      {{ currentViewDate() | date:'MMMM yyyy':'':'pt-BR' }}
+    </span>
+    <div class="flex gap-1">
+      <button 
+        type="button" 
+        (click)="prevMonth()" 
+        class="p-1.5 rounded-lg border border-border-light bg-transparent text-text-secondary hover:bg-neutral-50 hover:text-text-primary cursor-pointer transition-colors flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+      <button 
+        type="button" 
+        (click)="nextMonth()" 
+        class="p-1.5 rounded-lg border border-border-light bg-transparent text-text-secondary hover:bg-neutral-50 hover:text-text-primary cursor-pointer transition-colors flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-7 gap-1 text-center">
+    @for (dayName of weekDays; track $index) {
+      <span class="text-[10px] font-bold text-text-muted select-none py-1">
+        {{ dayName }}
+      </span>
+    }
+
+    @for (day of days(); track day.date.getTime()) {
+      <button 
+        type="button" 
+        (click)="selectDate(day.date)"
+        [class]="'h-7 w-7 mx-auto rounded-lg text-xs font-medium cursor-pointer transition-all flex items-center justify-center relative ' +
+                 (!day.isCurrentMonth ? 'text-text-muted opacity-45 ' : 'text-text-primary ') +
+                 (isSelected(day.date) ? 'bg-text-primary text-white font-bold ' : (isToday(day.date) ? 'bg-accent-light text-text-primary border border-accent ' : 'hover:bg-neutral-50'))">
+        {{ day.date | date:'d' }}
+        @if (isToday(day.date) && !isSelected(day.date)) {
+          <span class="absolute bottom-0.5 w-1 h-1 bg-accent rounded-full"></span>
+        }
+      </button>
+    }
+  </div>
+</div>

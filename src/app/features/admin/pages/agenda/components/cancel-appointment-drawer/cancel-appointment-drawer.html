@@ -3,40 +3,48 @@
      [class.opacity-100]="isOpen()"
      (click)="onClose()"></div>
 
-<div class="fixed bg-white shadow-2xl transition-transform duration-300 ease-in-out z-50 flex flex-col
+<div class="fixed bg-white shadow-2xl transition-[transform,opacity] duration-300 ease-out z-50 flex flex-col overflow-hidden
             bottom-0 left-0 right-0 h-[80vh] rounded-t-2xl w-full
-            md:top-0 md:bottom-0 md:right-0 md:left-auto md:h-full md:w-md md:rounded-l-2xl md:rounded-tr-none
-            translate-y-full md:translate-y-0 md:translate-x-full"
+            md:top-1/2 md:bottom-auto md:left-1/2 md:right-auto md:h-auto md:max-h-[85vh] md:w-full md:max-w-md md:rounded-2xl md:opacity-0 md:scale-95 md:-translate-x-1/2 md:-translate-y-[48%]"
      [class.translate-y-full]="!isOpen()"
-     [class.md:translate-x-full]="!isOpen()"
      [class.translate-y-0]="isOpen()"
-     [class.md:translate-x-0]="isOpen()">
+     [class.md:opacity-100]="isOpen()"
+     [class.md:scale-100]="isOpen()"
+     [class.md:-translate-y-1/2]="isOpen()"
+     [class.md:duration-0]="!isOpen()">
    
    <div class="flex justify-between items-center p-6 border-b border-border-light shrink-0">
      <h3 class="m-0 text-lg font-bold text-text-primary">
-       Cancelar Agendamento
+       Detalhes do Agendamento
      </h3>
      <button 
        type="button" 
        class="bg-transparent border-none text-2xl cursor-pointer text-text-secondary hover:text-text-primary leading-none transition-colors" 
        (click)="onClose()">
-       ×
+       &times;
      </button>
    </div>
 
    <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
      @if (appointment(); as appt) {
        <div class="flex flex-col gap-4">
-         <div class="flex items-center gap-3 p-4 bg-red-50/50 border border-red-100 rounded-xl">
-           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5 text-red-600 shrink-0">
-             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-           </svg>
-           <p class="text-xs text-red-700 m-0 leading-relaxed font-medium">
-             Tem certeza de que deseja cancelar este agendamento? Esta ação liberará o horário e não poderá ser desfeita.
-           </p>
-         </div>
+         @if (appt.status === 1) {
+           <div class="flex items-center gap-3 p-4 bg-red-50/50 border border-red-100 rounded-xl">
+             <span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block shrink-0"></span>
+             <p class="text-xs text-red-700 m-0 leading-relaxed font-medium">
+               Este agendamento foi cancelado.
+             </p>
+           </div>
+         } @else if (appt.status === 2) {
+           <div class="flex items-center gap-3 p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl">
+             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shrink-0"></span>
+             <p class="text-xs text-emerald-800 m-0 leading-relaxed font-medium">
+               Este agendamento foi concluído.
+             </p>
+           </div>
+         }
 
-         <div class="flex flex-col gap-4 border border-border-light rounded-xl p-5 bg-white">
+         <div class="flex flex-col gap-4 rounded-xl p-1 bg-white">
            <div>
              <span class="text-[10px] uppercase font-bold tracking-wider text-text-muted block">Cliente</span>
              <div class="flex items-center gap-2 mt-1">
@@ -87,22 +95,26 @@
      }
    </div>
 
-   <div class="flex flex-col gap-3 p-6 border-t border-border-light bg-neutral-50 shrink-0">
-     <button 
-       type="button" 
-       class="w-full py-3 bg-red-600 hover:bg-red-700 text-white border-none rounded-xl text-sm font-semibold cursor-pointer transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-       [disabled]="canceling()"
-       (click)="onConfirm()">
-       @if (canceling()) {
-         <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+   <div class="flex flex-col gap-3 p-6 pt-2 shrink-0">
+     @if (appointment(); as appt) {
+       @if (appt.status === 0 || appt.status === 3) {
+         <button 
+           type="button" 
+           class="w-full py-3 bg-red-600 hover:bg-red-700 text-white border-none rounded-xl text-sm font-semibold cursor-pointer transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+           [disabled]="canceling()"
+           (click)="onConfirm()">
+           @if (canceling()) {
+             <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+           }
+           Cancelar Agendamento
+         </button>
        }
-       Sim, cancelar agendamento
-     </button>
+     }
      <button 
        type="button" 
-       class="w-full py-3 bg-transparent border border-border-light rounded-xl text-sm font-semibold text-text-secondary cursor-pointer hover:bg-white transition-all active:scale-[0.98]" 
+       class="w-full py-3 bg-transparent border border-border-light rounded-xl text-sm font-semibold text-text-secondary cursor-pointer hover:bg-neutral-50 transition-all active:scale-[0.98]" 
        (click)="onClose()">
-       Não, manter agendamento
+       Fechar
      </button>
    </div>
 

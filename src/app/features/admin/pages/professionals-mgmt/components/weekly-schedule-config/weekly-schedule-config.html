@@ -50,15 +50,14 @@
               </div>
             </div>
           </div>
-          <select 
+          <app-select 
+            [id]="'day-interval-' + i"
+            label="Intervalo de Agendamento"
+            [options]="intervalOptions"
+            bindLabel="label"
+            bindValue="value"
             [(ngModel)]="day.intervalMinutes" 
-            (ngModelChange)="onHoursChange()"
-            class="px-3 py-2 border border-border-light rounded-lg text-xs w-full bg-white focus:outline-none focus:border-text-primary transition-colors">
-            <option [ngValue]="15">15 minutos</option>
-            <option [ngValue]="30">30 minutos</option>
-            <option [ngValue]="45">45 minutos</option>
-            <option [ngValue]="60">1 hora</option>
-          </select>
+            (ngModelChange)="onHoursChange()" />
         </div>
 
         <div class="flex items-center gap-2 py-1.5 pt-4 border-t border-dashed border-border-light">

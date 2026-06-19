@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Professional } from '../../../booking/models/professional.model';
 import { TimeBlock } from '../../../booking/models/time-block.model';
 import { ToastService } from '../../../../../shared/services/toast.service';
+import { SelectComponent } from '../../../../../shared/components/select/select';
 
 @Component({
   selector: 'app-time-block-drawer',
   standalone: true,
-  imports: [NgClass, FormsModule, DatePipe],
+  imports: [NgClass, FormsModule, DatePipe, SelectComponent],
   templateUrl: './time-block-drawer.html',
   host: {
     class: 'fixed inset-0 z-100 overflow-hidden transition-[visibility] duration-300 invisible pointer-events-none delay-300',

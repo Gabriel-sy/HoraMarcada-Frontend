@@ -3,14 +3,14 @@
      [class.opacity-100]="isOpen()"
      (click)="onClose()"></div>
 
-<div class="fixed bg-white shadow-2xl transition-transform duration-300 ease-in-out z-50 flex flex-col
+<div class="fixed bg-white shadow-2xl transition-all duration-300 ease-in-out z-50 flex flex-col overflow-hidden
             bottom-0 left-0 right-0 h-[85vh] rounded-t-2xl w-full
-            md:top-0 md:bottom-0 md:right-0 md:left-auto md:h-full md:w-md md:rounded-l-2xl md:rounded-tr-none
-            translate-y-full md:translate-y-0 md:translate-x-full"
+            md:top-1/2 md:bottom-auto md:left-1/2 md:right-auto md:h-auto md:max-h-[90vh] md:w-full md:max-w-5xl md:rounded-2xl md:opacity-0 md:scale-95 md:-translate-x-1/2 md:-translate-y-[48%]"
      [class.translate-y-full]="!isOpen()"
-     [class.md:translate-x-full]="!isOpen()"
      [class.translate-y-0]="isOpen()"
-     [class.md:translate-x-0]="isOpen()">
+     [class.md:opacity-100]="isOpen()"
+     [class.md:scale-100]="isOpen()"
+     [class.md:-translate-y-1/2]="isOpen()">
 
   <div class="flex justify-between items-center p-6 border-b border-border-light shrink-0">
     <div>
@@ -27,52 +27,8 @@
     </button>
   </div>
 
-  <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-    <div class="flex flex-col gap-4">
-      <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Dados do Cliente</h4>
-      <form [formGroup]="form" class="flex flex-col gap-4">
-        <div class="flex flex-col gap-1.5">
-          <app-input
-            id="client-name"
-            formControlName="name"
-            label="Nome Completo"
-            placeholder=" ">
-          </app-input>
-          @if (form.get('name')?.touched && form.get('name')?.invalid) {
-            <span class="text-xs text-red-600 font-medium px-1">O nome do cliente é obrigatório.</span>
-          }
-        </div>
-
-        <div class="flex flex-col gap-1.5">
-          <app-input
-            id="client-whatsapp"
-            formControlName="whatsapp"
-            label="WhatsApp"
-            placeholder=" ">
-          </app-input>
-          @if (form.get('whatsapp')?.touched && form.get('whatsapp')?.invalid) {
-            <span class="text-xs text-red-600 font-medium px-1">Insira um número de WhatsApp válido com DDD (ex: (11) 99999-9999).</span>
-          }
-        </div>
-
-        <div class="flex flex-col gap-1.5">
-          <app-input
-            id="client-email"
-            formControlName="email"
-            type="email"
-            label="E-mail"
-            placeholder=" ">
-          </app-input>
-          @if (form.get('email')?.touched && form.get('email')?.invalid) {
-            <span class="text-xs text-red-600 font-medium px-1">Insira um e-mail válido.</span>
-          }
-        </div>
-      </form>
-    </div>
-
-    <div class="border-t border-border-light"></div>
-
-    <div class="flex flex-col gap-3">
+  <div #scrollContainer class="flex-1 overflow-y-auto p-6 flex flex-col md:grid md:grid-cols-3 md:gap-6 gap-6">
+    <div class="flex flex-col gap-4 md:border-r md:border-border-light md:pr-6">
       <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Serviço</h4>
       <div class="flex flex-col gap-3">
         @for (service of services(); track service.id) {
@@ -92,9 +48,7 @@
       </div>
     </div>
 
-    <div class="border-t border-border-light"></div>
-
-    <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-4 md:border-r md:border-border-light md:pr-6">
       <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Profissional</h4>
       @if (!selectedServiceId()) {
         <div class="p-4 bg-neutral-50 border border-border-light rounded-xl text-center">
@@ -124,59 +78,105 @@
       }
     </div>
 
-    <div class="border-t border-border-light"></div>
+    <div class="flex flex-col gap-5">
+      <div class="flex flex-col gap-3">
+        <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Data & Horário</h4>
+        <input 
+          #dateInput
+          type="date" 
+          [value]="selectedDateString()" 
+          (change)="onDateChange($event)"
+          (click)="dateInput.showPicker()"
+          class="w-full px-3 py-2 border border-border-light rounded-lg text-xs text-text-primary focus:border-text-primary focus:outline-none bg-white font-sans cursor-pointer" />
+      </div>
 
-    <div class="flex flex-col gap-3">
-      <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Data</h4>
-      <input 
-        type="date" 
-        [value]="selectedDateString()" 
-        (change)="onDateChange($event)"
-        class="w-full px-4 py-3 border border-border-light rounded-xl text-sm text-text-primary focus:border-text-primary focus:outline-none bg-white font-sans" />
-    </div>
-
-    <div class="border-t border-border-light"></div>
-
-    <div class="flex flex-col gap-3">
-      <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Horários Disponíveis</h4>
-      @if (!selectedServiceId() || !selectedProfessionalId()) {
-        <div class="p-4 bg-neutral-50 border border-border-light rounded-xl text-center">
-          <p class="text-xs text-text-secondary m-0">Selecione o serviço e o profissional para consultar horários.</p>
-        </div>
-      } @else if (loadingSlots()) {
-        <div class="flex justify-center items-center py-6">
-          <div class="w-5 h-5 border-2 border-text-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      } @else if (slotsError()) {
-        <div class="p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl text-xs font-medium">
-          {{ slotsError() }}
-        </div>
-      } @else {
-        @if (slots().length > 0) {
-          <div class="grid grid-cols-4 gap-2">
-            @for (slot of slots(); track slot) {
-              <button
-                type="button"
-                (click)="selectSlot(slot)"
-                [class]="'py-2.5 border text-xs font-bold rounded-lg text-center cursor-pointer transition-all duration-200 ' +
-                         (selectedTime() === slot ? 'border-text-primary bg-accent-light text-text-primary' : 'border-border-light hover:border-text-primary bg-white text-text-primary')">
-                {{ formatTime(slot) }}
-              </button>
-            }
+      <div class="flex flex-col gap-3">
+        @if (!selectedServiceId() || !selectedProfessionalId()) {
+          <div class="p-4 bg-neutral-50 border border-border-light rounded-xl text-center">
+            <p class="text-xs text-text-secondary m-0">Selecione o serviço e o profissional para consultar horários.</p>
+          </div>
+        } @else if (loadingSlots()) {
+          <div class="flex justify-center items-center py-6">
+            <div class="w-5 h-5 border-2 border-text-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        } @else if (slotsError()) {
+          <div class="p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl text-xs font-medium">
+            {{ slotsError() }}
           </div>
         } @else {
-          <div class="p-4 bg-neutral-50 border border-border-light rounded-xl text-center">
-            <p class="text-xs text-text-secondary m-0">Não há horários disponíveis para este dia.</p>
-          </div>
+          @if (slots().length > 0) {
+            <div class="grid grid-cols-4 gap-1.5">
+              @for (slot of slots(); track slot) {
+                <button
+                  type="button"
+                  (click)="selectSlot(slot)"
+                  [class]="'py-2 border text-xs font-bold rounded-lg text-center cursor-pointer transition-all duration-200 ' +
+                           (selectedTime() === slot ? 'border-text-primary bg-accent-light text-text-primary' : 'border-border-light hover:border-text-primary bg-white text-text-primary')">
+                  {{ formatTime(slot) }}
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="p-4 bg-neutral-50 border border-border-light rounded-xl text-center">
+              <p class="text-xs text-text-secondary m-0">Não há horários disponíveis para este dia.</p>
+            </div>
+          }
         }
+      </div>
+
+      <div class="border-t border-border-light"></div>
+
+      <div class="flex flex-col gap-3">
+        <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Dados do Cliente</h4>
+        <form [formGroup]="form" class="flex flex-col gap-3">
+          <div class="flex flex-col gap-1">
+            <app-input
+              id="client-name"
+              formControlName="name"
+              label="Nome Completo"
+              placeholder=" "
+              class="block [&_input]:pt-5 [&_input]:pb-1.5 [&_input]:text-xs [&_label]:text-xs [&_label]:top-3">
+            </app-input>
+            @if (form.get('name')?.touched && form.get('name')?.invalid) {
+              <span class="text-[10px] text-red-600 font-medium px-1">O nome do cliente é obrigatório.</span>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <app-input
+              id="client-whatsapp"
+              formControlName="whatsapp"
+              label="WhatsApp"
+              placeholder=" "
+              class="block [&_input]:pt-5 [&_input]:pb-1.5 [&_input]:text-xs [&_label]:text-xs [&_label]:top-3">
+            </app-input>
+            @if (form.get('whatsapp')?.touched && form.get('whatsapp')?.invalid) {
+              <span class="text-[10px] text-red-600 font-medium px-1">WhatsApp inválido (ex: (11) 99999-9999).</span>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <app-input
+              id="client-email"
+              formControlName="email"
+              type="email"
+              label="E-mail"
+              placeholder=" "
+              class="block [&_input]:pt-5 [&_input]:pb-1.5 [&_input]:text-xs [&_label]:text-xs [&_label]:top-3">
+            </app-input>
+            @if (form.get('email')?.touched && form.get('email')?.invalid) {
+              <span class="text-[10px] text-red-600 font-medium px-1">E-mail inválido.</span>
+            }
+          </div>
+        </form>
+      </div>
+
+      @if (error()) {
+        <div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold">
+          {{ error() }}
+        </div>
       }
     </div>
-
-    @if (error()) {
-      <div class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold">
-        {{ error() }}
-      </div>
-    }
   </div>
 
   <div class="flex flex-col gap-3 p-6 border-t border-border-light bg-neutral-50 shrink-0">

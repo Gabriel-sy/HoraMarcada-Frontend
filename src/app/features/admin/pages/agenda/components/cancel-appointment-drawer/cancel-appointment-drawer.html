@@ -3,15 +3,14 @@
      [class.opacity-100]="isOpen()"
      (click)="onClose()"></div>
 
-<div class="fixed bg-white shadow-2xl transition-[transform,opacity] duration-300 ease-out z-50 flex flex-col overflow-hidden
+<div class="fixed bg-white shadow-2xl transition-all duration-300 ease-in-out z-50 flex flex-col overflow-hidden
             bottom-0 left-0 right-0 h-[80vh] rounded-t-2xl w-full
             md:top-1/2 md:bottom-auto md:left-1/2 md:right-auto md:h-auto md:max-h-[85vh] md:w-full md:max-w-md md:rounded-2xl md:opacity-0 md:scale-95 md:-translate-x-1/2 md:-translate-y-[48%]"
      [class.translate-y-full]="!isOpen()"
      [class.translate-y-0]="isOpen()"
      [class.md:opacity-100]="isOpen()"
      [class.md:scale-100]="isOpen()"
-     [class.md:-translate-y-1/2]="isOpen()"
-     [class.md:duration-0]="!isOpen()">
+     [class.md:-translate-y-1/2]="isOpen()">
    
    <div class="flex justify-between items-center p-6 border-b border-border-light shrink-0">
      <h3 class="m-0 text-lg font-bold text-text-primary">
@@ -25,8 +24,8 @@
      </button>
    </div>
 
-   <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-     @if (appointment(); as appt) {
+   <div class="flex-1 overflow-y-auto p-6 pt-3 flex flex-col gap-6">
+     @if (activeAppointment(); as appt) {
        <div class="flex flex-col gap-4">
          @if (appt.status === 1) {
            <div class="flex items-center gap-3 p-4 bg-red-50/50 border border-red-100 rounded-xl">
@@ -96,8 +95,8 @@
    </div>
 
    <div class="flex flex-col gap-3 p-6 pt-2 shrink-0">
-     @if (appointment(); as appt) {
-       @if (appt.status === 0 || appt.status === 3) {
+     @if (activeAppointment(); as appt) {
+       @if (showCancelButton(appt)) {
          <button 
            type="button" 
            class="w-full py-3 bg-red-600 hover:bg-red-700 text-white border-none rounded-xl text-sm font-semibold cursor-pointer transition-all active:scale-[0.98] flex items-center justify-center gap-2"

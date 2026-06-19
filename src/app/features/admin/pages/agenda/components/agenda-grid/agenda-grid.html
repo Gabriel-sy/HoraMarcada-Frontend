@@ -103,13 +103,15 @@
             </div>
           }
           @case ('empty') {
-            <div class="border-b border-border-light border-l border-border-light flex items-center justify-center relative group hover:bg-neutral-50/20"
+            <div class="border-b border-border-light border-l border-border-light flex items-center justify-center relative group hover:bg-neutral-50/20 hover:cursor-pointer"
                  [style.grid-column]="pIdx + 2"
-                 [style.grid-row]="sIdx + 2">
+                 [style.grid-row]="sIdx + 2"
+                 (click)="onAddAppointment(prof.id, cell.time)"
+                 >
               <button
                 [id]="'desktop-add-appt-btn-' + prof.id + '-' + slot"
-                type="button"
                 (click)="onAddAppointment(prof.id, cell.time)"
+                type="button"
                 class="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-full bg-text-primary text-white border-none flex items-center justify-center cursor-pointer hover:bg-neutral-800 active:scale-90 transition-all shadow-xs">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-3.5 h-3.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

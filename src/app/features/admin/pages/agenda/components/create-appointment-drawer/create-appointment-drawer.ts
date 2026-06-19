@@ -1,4 +1,4 @@
-import { Component, input, output, signal, effect, inject, OnDestroy, computed } from '@angular/core';
+import { Component, input, output, signal, effect, inject, OnDestroy, computed, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -21,7 +21,7 @@ import { Professional } from '../../../../../booking/models/professional.model';
   ],
   templateUrl: './create-appointment-drawer.html',
   host: {
-    class: 'fixed inset-0 z-100 overflow-hidden transition-[visibility] duration-300 invisible pointer-events-none delay-300',
+    class: 'fixed inset-0 z-100 overflow-hidden transition-[visibility] duration-0 invisible pointer-events-none',
     '[class.invisible]': '!isOpen()',
     '[class.visible]': 'isOpen()',
     '[class.pointer-events-none]': '!isOpen()',
@@ -31,6 +31,7 @@ import { Professional } from '../../../../../booking/models/professional.model';
 })
 export class CreateAppointmentDrawerComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
+  scrollContainer = viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
   private readonly apiService = inject(BookingApiService);
   private currentSubscription?: Subscription;
 
@@ -125,7 +126,14 @@ export class CreateAppointmentDrawerComponent implements OnDestroy {
 
     effect(() => {
       const open = this.isOpen();
-      if (!open) {
+      if (open) {
+        setTimeout(() => {
+          const container = this.scrollContainer();
+          if (container) {
+            container.nativeElement.scrollTop = 0;
+          }
+        }, 0);
+      } else {
         this.resetDrawer();
       }
     });

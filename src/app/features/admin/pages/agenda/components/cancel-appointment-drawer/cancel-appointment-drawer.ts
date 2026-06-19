@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal, effect } from '@angular/core';
 import { Appointment } from '../../../../../booking/models/appointment.model';
 import { Service } from '../../../../../booking/models/service.model';
 import { Professional } from '../../../../../booking/models/professional.model';
@@ -9,13 +9,12 @@ import { Professional } from '../../../../../booking/models/professional.model';
   imports: [],
   templateUrl: './cancel-appointment-drawer.html',
   host: {
-    class: 'fixed inset-0 z-100 overflow-hidden transition-[visibility] duration-300 invisible pointer-events-none delay-300',
+    class: 'fixed inset-0 z-100 overflow-hidden transition-[visibility] duration-0 invisible pointer-events-none',
     '[class.invisible]': '!isOpen()',
     '[class.visible]': 'isOpen()',
     '[class.pointer-events-none]': '!isOpen()',
     '[class.pointer-events-auto]': 'isOpen()',
-    '[class.delay-300]': '!isOpen()',
-    '[class.md:delay-0]': '!isOpen()'
+    '[class.delay-300]': '!isOpen()'
   }
 })
 export class CancelAppointmentDrawerComponent {
@@ -28,6 +27,17 @@ export class CancelAppointmentDrawerComponent {
 
   confirm = output<void>();
   close = output<void>();
+
+  activeAppointment = signal<Appointment | null>(null);
+
+  constructor() {
+    effect(() => {
+      const current = this.appointment();
+      if (current) {
+        this.activeAppointment.set(current);
+      }
+    });
+  }
 
   onConfirm(): void {
     this.confirm.emit();
@@ -56,6 +66,12 @@ export class CancelAppointmentDrawerComponent {
     const hours = String(d.getHours()).padStart(2, '0');
     const minutes = String(d.getMinutes()).padStart(2, '0');
     return `${hours}:${minutes}`;
+  }
+
+  showCancelButton(appt: Appointment) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return (appt.status === 0 || appt.status === 3) && new Date(appt.startTime) >= today;
   }
 
   formatPrice(priceValue: any): string {

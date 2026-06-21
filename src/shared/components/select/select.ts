@@ -25,6 +25,7 @@ export class SelectComponent implements ControlValueAccessor {
   bindLabel = input<string>('label');
   bindValue = input<string>('value');
   placeholder = input<string>('');
+  maxHeight = input<string>('50');
 
   value = signal<any>(null);
   disabled = signal<boolean>(false);

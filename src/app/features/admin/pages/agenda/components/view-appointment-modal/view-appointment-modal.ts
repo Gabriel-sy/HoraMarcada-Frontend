@@ -4,10 +4,10 @@ import { Service } from '../../../../../booking/models/service.model';
 import { Professional } from '../../../../../booking/models/professional.model';
 
 @Component({
-  selector: 'app-cancel-appointment-drawer',
+  selector: 'app-view-appointment-modal',
   standalone: true,
   imports: [],
-  templateUrl: './cancel-appointment-drawer.html',
+  templateUrl: './view-appointment-modal.html',
   host: {
     class: 'fixed inset-0 z-100 overflow-hidden transition-[visibility] duration-0 invisible pointer-events-none',
     '[class.invisible]': '!isOpen()',
@@ -17,7 +17,7 @@ import { Professional } from '../../../../../booking/models/professional.model';
     '[class.delay-300]': '!isOpen()'
   }
 })
-export class CancelAppointmentDrawerComponent {
+export class ViewAppointmentModalComponent {
   appointment = input.required<Appointment | null>();
   services = input.required<Service[]>();
   professionals = input.required<Professional[]>();

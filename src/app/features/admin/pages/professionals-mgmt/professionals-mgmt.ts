@@ -9,7 +9,7 @@ import { TimeBlock } from '../../../booking/models/time-block.model';
 import { SpinnerComponent } from '../../../../../shared/components/spinner/spinner';
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { ProfessionalFormDrawerComponent } from './components/professional-form-drawer/professional-form-drawer';
-import { TimeBlockDrawerComponent } from '../../components/time-block-drawer/time-block-drawer';
+import { TimeBlockDrawerComponent } from './components/time-block-drawer/time-block-drawer';
 import { ToastService } from '../../../../../shared/services/toast.service';
 
 interface DayHoursConfig {

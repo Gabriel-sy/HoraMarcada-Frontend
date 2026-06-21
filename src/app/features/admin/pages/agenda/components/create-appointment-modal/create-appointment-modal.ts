@@ -10,7 +10,7 @@ import { Service } from '../../../../../booking/models/service.model';
 import { Professional } from '../../../../../booking/models/professional.model';
 
 @Component({
-  selector: 'app-create-appointment-drawer',
+  selector: 'app-create-appointment-modal',
   standalone: true,
   imports: [
     CommonModule,
@@ -19,7 +19,7 @@ import { Professional } from '../../../../../booking/models/professional.model';
     InputComponent,
     ButtonComponent
   ],
-  templateUrl: './create-appointment-drawer.html',
+  templateUrl: './create-appointment-modal.html',
   host: {
     class: 'fixed inset-0 z-100 overflow-hidden transition-[visibility] duration-0 invisible pointer-events-none',
     '[class.invisible]': '!isOpen()',
@@ -29,7 +29,7 @@ import { Professional } from '../../../../../booking/models/professional.model';
     '[class.delay-300]': '!isOpen()'
   }
 })
-export class CreateAppointmentDrawerComponent implements OnDestroy {
+export class CreateAppointmentModalComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   scrollContainer = viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
   private readonly apiService = inject(BookingApiService);

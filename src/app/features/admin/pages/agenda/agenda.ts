@@ -17,11 +17,11 @@ import { AppointmentStatus } from '../../../booking/models/appointment-status.en
 import { SpinnerComponent } from '../../../../../shared/components/spinner/spinner';
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { DateCarouselComponent } from './components/date-carousel/date-carousel';
-import { CancelAppointmentDrawerComponent } from './components/cancel-appointment-drawer/cancel-appointment-drawer';
-import { TimeBlockDrawerComponent } from '../../components/time-block-drawer/time-block-drawer';
+import { ViewAppointmentModalComponent } from './components/view-appointment-modal/view-appointment-modal';
+import { TimeBlockModalComponent } from './components/time-block-modal/time-block-modal';
 import { ProfessionalFilterDrawerComponent } from './components/professional-filter-drawer/professional-filter-drawer';
 import { ToastService } from '../../../../../shared/services/toast.service';
-import { CreateAppointmentDrawerComponent } from './components/create-appointment-drawer/create-appointment-drawer';
+import { CreateAppointmentModalComponent } from './components/create-appointment-modal/create-appointment-modal';
 import { AgendaSidebarComponent } from './components/agenda-sidebar/agenda-sidebar';
 import { AgendaGridComponent } from './components/agenda-grid/agenda-grid';
 import { AgendaMobileFeedComponent } from './components/agenda-mobile-feed/agenda-mobile-feed';
@@ -36,10 +36,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     SpinnerComponent,
     EmptyStateComponent,
     DateCarouselComponent,
-    CancelAppointmentDrawerComponent,
-    TimeBlockDrawerComponent,
+    ViewAppointmentModalComponent,
+    TimeBlockModalComponent,
     ProfessionalFilterDrawerComponent,
-    CreateAppointmentDrawerComponent,
+    CreateAppointmentModalComponent,
     AgendaSidebarComponent,
     AgendaGridComponent,
     AgendaMobileFeedComponent

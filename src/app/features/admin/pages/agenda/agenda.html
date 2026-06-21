@@ -1,4 +1,4 @@
-<div class="w-full min-h-screen flex flex-col gap-6">
+<div class="w-full flex flex-col gap-6">
 
   <div class="hidden lg:flex flex-row gap-6 w-full">
     <aside class="w-72 shrink-0 border-r border-border-light pr-6">
@@ -149,7 +149,7 @@
     (close)="closeProfessionalFilterDrawer()">
   </app-professional-filter-drawer>
 
-  <app-cancel-appointment-drawer
+  <app-view-appointment-modal
     [isOpen]="isCancelModalOpen()"
     [appointment]="appointmentToCancel()"
     [services]="services()"
@@ -158,23 +158,19 @@
     [cancelError]="cancelError()"
     (confirm)="confirmCancel()"
     (close)="closeCancelModal()">
-  </app-cancel-appointment-drawer>
+  </app-view-appointment-modal>
 
-  <app-time-block-drawer
+  <app-time-block-modal
     [isOpen]="isBlockDrawerOpen()"
     [submitting]="submittingBlock()"
     [professionals]="professionals()"
     [selectedProfessional]="selectedProfessionalForBlock()"
     [selectedDate]="selectedDate()"
-    [showSubtitle]="false"
-    [timeBlocks]="[]"
-    [loadingBlocks]="false"
-    [showBlocksList]="false"
     (close)="closeBlockDrawer()"
     (createBlock)="handleCreateTimeBlock($event)">
-  </app-time-block-drawer>
+  </app-time-block-modal>
 
-  <app-create-appointment-drawer
+  <app-create-appointment-modal
     [isOpen]="isCreateDrawerOpen()"
     [storeId]="storeId()"
     [services]="services()"
@@ -186,6 +182,6 @@
     [preselectedTime]="preselectedTime()"
     (confirm)="handleCreateAppointment($event)"
     (close)="closeCreateDrawer()">
-  </app-create-appointment-drawer>
+  </app-create-appointment-modal>
 
 </div>

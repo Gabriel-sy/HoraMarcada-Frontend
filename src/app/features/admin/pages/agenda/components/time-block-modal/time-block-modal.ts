@@ -1,16 +1,15 @@
 import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { NgClass, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Professional } from '../../../booking/models/professional.model';
-import { TimeBlock } from '../../../booking/models/time-block.model';
-import { ToastService } from '../../../../../shared/services/toast.service';
-import { SelectComponent } from '../../../../../shared/components/select/select';
+import { Professional } from '../../../../../booking/models/professional.model';
+import { ToastService } from '../../../../../../../shared/services/toast.service';
+import { SelectComponent } from '../../../../../../../shared/components/select/select';
 
 @Component({
-  selector: 'app-time-block-drawer',
+  selector: 'app-time-block-modal',
   standalone: true,
   imports: [NgClass, FormsModule, DatePipe, SelectComponent],
-  templateUrl: './time-block-drawer.html',
+  templateUrl: './time-block-modal.html',
   host: {
     class: 'fixed inset-0 z-100 overflow-hidden transition-[visibility] duration-300 invisible pointer-events-none delay-300',
     '[class.invisible]': '!isOpen()',
@@ -20,7 +19,7 @@ import { SelectComponent } from '../../../../../shared/components/select/select'
     '[class.delay-300]': '!isOpen()'
   }
 })
-export class TimeBlockDrawerComponent {
+export class TimeBlockModalComponent {
   private readonly toastService = inject(ToastService);
 
   isOpen = input.required<boolean>();
@@ -28,15 +27,9 @@ export class TimeBlockDrawerComponent {
   professionals = input.required<Professional[]>();
   selectedProfessional = input<Professional | null>(null);
   selectedDate = input<Date | null>(null);
-  timeBlocks = input.required<TimeBlock[]>();
-  loadingBlocks = input.required<boolean>();
-  showBlocksList = input<boolean>(false);
-  showSubtitle = input<boolean>(true);
 
   close = output<void>();
   createBlock = output<{ professionalId: string; date: string; type: 'day' | 'range'; startTime: string; endTime: string }>();
-  deleteBlock = output<{ blockId: string; professionalId: string }>();
-  loadBlocks = output<string>();
 
   blockProfessionalId = signal<string>('');
   blockType = signal<'day' | 'range'>('range');
@@ -49,7 +42,6 @@ export class TimeBlockDrawerComponent {
       const prof = this.selectedProfessional();
       if (prof) {
         this.blockProfessionalId.set(prof.id);
-        this.loadBlocks.emit(prof.id);
       } else {
         const profs = this.professionals();
         if (profs.length > 0 && !this.blockProfessionalId()) {
@@ -92,38 +84,5 @@ export class TimeBlockDrawerComponent {
       startTime: this.blockStartTime(),
       endTime: this.blockEndTime()
     });
-  }
-
-  onDeleteTimeBlock(blockId: string): void {
-    const pId = this.blockProfessionalId();
-    if (!pId) return;
-    this.deleteBlock.emit({ blockId, professionalId: pId });
-  }
-
-  formatBlockDateTime(startTimeStr: string, endTimeStr: string): string {
-    const start = new Date(startTimeStr);
-    const end = new Date(endTimeStr);
-
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long'
-    };
-
-    const dateFormatted = start.toLocaleDateString('pt-BR', options);
-    const capitalizedDate = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
-
-    const isFullDay = start.getHours() === 0 && start.getMinutes() === 0 && end.getHours() === 23 && end.getMinutes() === 59;
-
-    if (isFullDay) {
-      return `${capitalizedDate} • Dia Inteiro`;
-    }
-
-    const startH = String(start.getHours()).padStart(2, '0');
-    const startM = String(start.getMinutes()).padStart(2, '0');
-    const endH = String(end.getHours()).padStart(2, '0');
-    const endM = String(end.getMinutes()).padStart(2, '0');
-
-    return `${capitalizedDate} • ${startH}:${startM} às ${endH}:${endM}`;
   }
 }

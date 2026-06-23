@@ -86,6 +86,7 @@ export class AgendaComponent implements OnInit {
   readonly selectedSidebarProfessionalIds = signal<string[]>([]);
   readonly preselectedProfessionalId = signal<string | null>(null);
   readonly preselectedTime = signal<string | null>(null);
+  private hasInitializedProfessionals = false;
 
   readonly activeProfessionalsList = computed(() => {
     const selectedIds = this.selectedSidebarProfessionalIds();
@@ -274,8 +275,9 @@ export class AgendaComponent implements OnInit {
   constructor() {
     effect(() => {
       const profs = this.professionals();
-      if (profs.length > 0 && this.selectedSidebarProfessionalIds().length === 0) {
+      if (profs.length > 0 && !this.hasInitializedProfessionals) {
         this.selectedSidebarProfessionalIds.set(profs.map(p => p.id));
+        this.hasInitializedProfessionals = true;
       }
     }, { allowSignalWrites: true });
 

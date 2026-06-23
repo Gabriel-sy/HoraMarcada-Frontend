@@ -1,0 +1,37 @@
+<div class="flex items-center justify-center min-h-screen p-6 bg-white font-sans">
+  <div class="w-full max-w-[460px] text-center flex flex-col items-center">
+    @if (cancelState() === 'loading') {
+      <div class="flex flex-col items-center gap-6 animate-fade-in">
+        <div class="w-14 h-14 border-[3px] border-neutral-100 border-t-text-primary rounded-full animate-spin mb-2"></div>
+        <h2 class="text-2xl font-bold text-text-primary tracking-tight">Cancelando agendamento...</h2>
+        <p class="text-[15px] leading-relaxed text-text-secondary">Aguarde enquanto processamos a sua solicitação de cancelamento.</p>
+      </div>
+    } @else if (cancelState() === 'success') {
+      <div class="flex flex-col items-center gap-6 animate-fade-in">
+        <div class="flex items-center justify-center w-20 h-20 rounded-full mb-2 bg-accent-light border border-accent text-emerald-700 [animation:scale-up_0.5s_cubic-bezier(0.34,1.56,0.64,1)]">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-9 h-9">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-text-primary tracking-tight">Cancelado com Sucesso</h2>
+        <p class="text-[15px] leading-relaxed text-text-secondary">Seu agendamento foi cancelado com sucesso. Caso queira realizar um novo agendamento, você pode acessar a página do estabelecimento.</p>
+        @if (storeSlug()) {
+          <a [routerLink]="['/', storeSlug()]" class="mt-2 px-5 py-2.5 border border-text-primary text-text-primary text-sm font-semibold rounded-lg hover:bg-gray-50 transition-all active:scale-[0.98] duration-200 cursor-pointer no-underline inline-flex items-center justify-center">
+            Realizar novo agendamento
+          </a>
+        }
+      </div>
+    } @else if (cancelState() === 'error') {
+      <div class="flex flex-col items-center gap-6 animate-fade-in">
+        <div class="flex items-center justify-center w-20 h-20 rounded-full mb-2 bg-red-50 border border-red-200 text-red-600 [animation:scale-up_0.5s_cubic-bezier(0.34,1.56,0.64,1)]">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-9 h-9">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-text-primary tracking-tight">Não foi possível cancelar</h2>
+        <p class="bg-neutral-50 border border-neutral-200 rounded-lg p-3.5 text-sm text-red-600 font-medium w-full">{{ errorMessage() }}</p>
+        <p class="text-sm text-text-muted">Se você precisar de ajuda, entre em contato diretamente com o estabelecimento.</p>
+      </div>
+    }
+  </div>
+</div>

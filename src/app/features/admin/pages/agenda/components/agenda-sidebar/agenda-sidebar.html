@@ -28,11 +28,8 @@
       @for (prof of professionals(); track prof.id) {
         <label 
           (click)="$event.preventDefault(); toggleProfessional(prof.id)"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent hover:border-border-light hover:bg-neutral-50 cursor-pointer transition-all duration-200 select-none">
-          <input 
-            type="checkbox" 
-            [checked]="isSelected(prof.id)"
-            class="w-4 h-4 rounded text-text-primary focus:ring-text-primary border-border-light cursor-pointer" />
+          class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border border-transparent hover:border-border-light hover:bg-neutral-50 cursor-pointer transition-all duration-200 select-none">
+          
           
           <div class="flex items-center gap-2">
             @if (prof.photoUrl) {
@@ -46,6 +43,10 @@
               {{ prof.name }}
             </span>
           </div>
+          <input 
+            type="checkbox" 
+            [checked]="isSelected(prof.id)"
+            class="w-4 h-4 rounded text-text-primary focus:ring-text-primary border-border-light cursor-pointer" />
         </label>
       }
     </div>

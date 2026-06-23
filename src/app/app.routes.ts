@@ -43,6 +43,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/booking/confirm-presence/confirm-presence').then(m => m.ConfirmPresenceComponent)
   },
   {
+    path: 'cancel/:token',
+    loadComponent: () => import('./features/booking/cancel-appointment/cancel-appointment').then(m => m.CancelAppointmentComponent)
+  },
+  {
     path: ':slug',
     loadComponent: () => import('./features/booking/booking').then(m => m.BookingComponent)
   }

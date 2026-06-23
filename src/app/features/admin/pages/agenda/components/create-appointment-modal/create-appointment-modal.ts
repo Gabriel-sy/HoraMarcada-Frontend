@@ -75,7 +75,7 @@ export class CreateAppointmentModalComponent implements OnDestroy {
     if (!svcId) return [];
     const svc = this.services().find(s => s.id === svcId);
     if (!svc) return [];
-    return this.professionals().filter(p => svc.professionalIds.includes(p.id));
+    return this.professionals().filter(p => p.active && svc.professionalIds.includes(p.id));
   });
 
   constructor() {

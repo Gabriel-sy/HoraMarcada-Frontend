@@ -5,7 +5,7 @@
 
 <div class="fixed bg-white shadow-2xl transition-all duration-300 ease-in-out z-50 flex flex-col overflow-hidden
             bottom-0 left-0 right-0 h-[85vh] rounded-t-2xl w-full
-            md:top-1/2 md:bottom-auto md:left-1/2 md:right-auto md:h-auto md:max-h-[90vh] md:w-full md:max-w-5xl md:rounded-2xl md:opacity-0 md:scale-95 md:-translate-x-1/2 md:-translate-y-[48%]"
+            md:top-1/2 md:bottom-auto md:left-1/2 md:right-auto md:h-auto md:max-h-[90vh] md:w-full md:max-w-5xl md:rounded-2xl md:opacity-0 md:scale-95 md:-translate-x-1/2 md:translate-y-[48%]"
      [class.translate-y-full]="!isOpen()"
      [class.translate-y-0]="isOpen()"
      [class.md:opacity-100]="isOpen()"
@@ -155,19 +155,6 @@
             }
           </div>
 
-          <div class="flex flex-col gap-1">
-            <app-input
-              id="client-email"
-              formControlName="email"
-              type="email"
-              label="E-mail"
-              placeholder=" "
-              class="block [&_input]:pt-5 [&_input]:pb-1.5 [&_input]:text-xs [&_label]:text-xs [&_label]:top-3">
-            </app-input>
-            @if (form.get('email')?.touched && form.get('email')?.invalid) {
-              <span class="text-[10px] text-red-600 font-medium px-1">E-mail inválido.</span>
-            }
-          </div>
         </form>
       </div>
 

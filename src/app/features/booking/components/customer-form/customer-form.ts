@@ -22,12 +22,11 @@ export class CustomerFormComponent {
   }>();
 
   loading = input<boolean>(false);
-  submitted = output<{ name: string; whatsapp: string; email: string }>();
+  submitted = output<{ name: string; whatsapp: string }>();
 
   form: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
-    whatsapp: ['', [Validators.required, Validators.pattern(/^\(\d{2}\) \d{4,5}-\d{4}$/)]],
-    email: ['', [Validators.required, Validators.email]]
+    whatsapp: ['', [Validators.required, Validators.pattern(/^\(\d{2}\) \d{4,5}-\d{4}$/)]]
   });
 
   constructor() {

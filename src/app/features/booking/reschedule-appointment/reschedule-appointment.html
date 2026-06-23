@@ -1,0 +1,22 @@
+<div class="flex items-center justify-center min-h-screen p-6 bg-white font-sans">
+  <div class="w-full max-w-[460px] text-center flex flex-col items-center">
+    @if (state() === 'loading') {
+      <div class="flex flex-col items-center gap-6 animate-fade-in">
+        <div class="w-14 h-14 border-[3px] border-neutral-100 border-t-text-primary rounded-full animate-spin mb-2"></div>
+        <h2 class="text-2xl font-bold text-text-primary tracking-tight">Preparando reagendamento...</h2>
+        <p class="text-[15px] leading-relaxed text-text-secondary">Aguarde enquanto cancelamos o agendamento anterior.</p>
+      </div>
+    } @else if (state() === 'error') {
+      <div class="flex flex-col items-center gap-6 animate-fade-in">
+        <div class="flex items-center justify-center w-20 h-20 rounded-full mb-2 bg-red-50 border border-red-200 text-red-600 [animation:scale-up_0.5s_cubic-bezier(0.34,1.56,0.64,1)]">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-9 h-9">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-text-primary tracking-tight">Não foi possível reagendar</h2>
+        <p class="bg-neutral-50 border border-neutral-200 rounded-lg p-3.5 text-sm text-red-600 font-medium w-full">{{ errorMessage() }}</p>
+        <p class="text-sm text-text-muted">Você ainda pode realizar um novo agendamento acessando a página do estabelecimento.</p>
+      </div>
+    }
+  </div>
+</div>

@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { BookingApiService } from './services/booking-api.service';
 import { Store } from './models/store.model';
 import { NgClass } from '@angular/common';
@@ -18,7 +18,6 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 export class BookingComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly apiService = inject(BookingApiService);
   private readonly sanitizer = inject(DomSanitizer);
 
@@ -53,40 +52,16 @@ export class BookingComponent implements OnInit {
   formError = signal<string | null>(null);
 
   ngOnInit(): void {
+    const navigationState = history.state as { rescheduleSuccess?: boolean };
+    if (navigationState?.rescheduleSuccess) {
+      this.rescheduleMessage.set('Agendamento anterior cancelado. Escolha um novo horário abaixo!');
+    }
+
     this.route.paramMap.subscribe(params => {
       const slugVal = params.get('slug');
       if (slugVal) {
         this.slug.set(slugVal);
         this.loadStoreBySlug(slugVal);
-
-        this.route.queryParamMap.subscribe(queryParams => {
-          const rescheduleToken = queryParams.get('reschedule');
-          if (rescheduleToken) {
-            this.handleReschedule(rescheduleToken);
-          }
-        });
-      }
-    });
-  }
-
-  private handleReschedule(token: string): void {
-    this.rescheduleMessage.set('Cancelando agendamento anterior...');
-    this.apiService.cancelAppointmentByToken({ cancelToken: token }).subscribe({
-      next: () => {
-        this.rescheduleMessage.set('Agendamento anterior cancelado. Escolha um novo horário abaixo!');
-        this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: { reschedule: null },
-          queryParamsHandling: 'merge'
-        });
-      },
-      error: () => {
-        this.rescheduleMessage.set('Não foi possível cancelar o agendamento anterior ou ele já foi cancelado. Você pode realizar um novo agendamento.');
-        this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: { reschedule: null },
-          queryParamsHandling: 'merge'
-        });
       }
     });
   }
@@ -147,7 +122,7 @@ export class BookingComponent implements OnInit {
     this.goForward();
   }
 
-  onFormSubmitted(customerData: { name: string, whatsapp: string, email: string }): void {
+  onFormSubmitted(customerData: { name: string, whatsapp: string }): void {
     this.submitting.set(true);
     this.formError.set(null);
 
@@ -161,7 +136,6 @@ export class BookingComponent implements OnInit {
       serviceId: this.selectedService()!.id,
       customerName: customerData.name,
       customerWhatsApp: customerData.whatsapp,
-      customerEmail: customerData.email,
       startTime: this.selectedTime()!
     };
 

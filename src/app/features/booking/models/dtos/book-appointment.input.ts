@@ -4,6 +4,5 @@ export interface BookAppointmentInput {
   serviceId: string;
   customerName: string;
   customerWhatsApp: string;
-  customerEmail: string;
   startTime: string;
 }

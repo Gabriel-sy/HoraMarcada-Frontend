@@ -48,7 +48,6 @@ export class CreateAppointmentModalComponent implements OnDestroy {
   confirm = output<{
     customerName: string;
     customerWhatsApp: string;
-    customerEmail: string;
     serviceId: string;
     professionalId: string;
     startTime: string;
@@ -66,8 +65,7 @@ export class CreateAppointmentModalComponent implements OnDestroy {
 
   form: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
-    whatsapp: ['', [Validators.required, Validators.pattern(/^\(\d{2}\) \d{4,5}-\d{4}$/)]],
-    email: ['', [Validators.required, Validators.email]]
+    whatsapp: ['', [Validators.required, Validators.pattern(/^\(\d{2}\) \d{4,5}-\d{4}$/)]]
   });
 
   filteredProfessionals = computed(() => {
@@ -179,7 +177,6 @@ export class CreateAppointmentModalComponent implements OnDestroy {
       this.confirm.emit({
         customerName: rawValue.name,
         customerWhatsApp: `+55${digits}`,
-        customerEmail: rawValue.email,
         serviceId: this.selectedServiceId()!,
         professionalId: this.selectedProfessionalId()!,
         startTime: this.selectedTime()!
@@ -250,8 +247,7 @@ export class CreateAppointmentModalComponent implements OnDestroy {
   private resetDrawer(): void {
     this.form.reset({
       name: '',
-      whatsapp: '',
-      email: ''
+      whatsapp: ''
     });
     this.selectedServiceId.set(null);
     this.selectedProfessionalId.set(this.preselectedProfessionalId() || null);

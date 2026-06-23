@@ -522,7 +522,6 @@ export class AgendaComponent implements OnInit {
   handleCreateAppointment(event: {
     customerName: string;
     customerWhatsApp: string;
-    customerEmail: string;
     serviceId: string;
     professionalId: string;
     startTime: string;
@@ -539,7 +538,6 @@ export class AgendaComponent implements OnInit {
       serviceId: event.serviceId,
       customerName: event.customerName,
       customerWhatsApp: event.customerWhatsApp,
-      customerEmail: event.customerEmail,
       startTime: event.startTime
     };
 

@@ -17,7 +17,7 @@
         <div class="flex items-center justify-between gap-3 bg-neutral-50 p-3 rounded-xl border border-neutral-100">
           <div class="min-w-0">
             <p class="text-sm font-semibold text-neutral-900 m-0 truncate">{{ appointment()?.customerName }}</p>
-            <p class="text-xs text-neutral-500 m-0 truncate mt-0.5">{{ appointment()?.customerEmail?.value }}</p>
+            <p class="text-xs text-neutral-500 m-0 truncate mt-0.5">{{ appointment()?.customerWhatsApp?.value }}</p>
           </div>
           @if (appointment()?.customerWhatsApp) {
             <a 

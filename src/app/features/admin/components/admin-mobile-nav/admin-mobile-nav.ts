@@ -1,4 +1,4 @@
-import { Component, output } from '@angular/core';
+import { Component, output, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
@@ -12,8 +12,18 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 })
 export class AdminMobileNavComponent {
   logout = output<void>();
+  isOpen = signal(false);
+
+  toggleMenu(): void {
+    this.isOpen.update(value => !value);
+  }
+
+  closeMenu(): void {
+    this.isOpen.set(false);
+  }
 
   onLogout(): void {
+    this.closeMenu();
     this.logout.emit();
   }
 }

@@ -74,36 +74,42 @@
           </div>
         } @else {
           <form [formGroup]="editForm" (ngSubmit)="saveCustomer()" class="flex flex-col gap-4 bg-neutral-50/50 rounded-xl p-5 border border-border-light">
-            <app-input
-              id="edit-name"
-              label="Nome Completo"
-              formControlName="name">
-            </app-input>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-semibold text-text-secondary" for="edit-name">Nome Completo</label>
+              <input 
+                type="text" 
+                id="edit-name"
+                formControlName="name" 
+                class="px-3.5 py-2.5 border border-border-light rounded-xl text-sm w-full focus:outline-none focus:border-text-primary transition-colors box-border" />
+            </div>
 
-            <app-input
-              id="edit-whatsapp"
-              label="WhatsApp"
-              formControlName="whatsApp">
-            </app-input>
-
-
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-semibold text-text-secondary" for="edit-whatsapp">WhatsApp</label>
+              <input 
+                type="text" 
+                id="edit-whatsapp"
+                formControlName="whatsApp" 
+                class="px-3.5 py-2.5 border border-border-light rounded-xl text-sm w-full focus:outline-none focus:border-text-primary transition-colors box-border" />
+            </div>
 
             <div class="flex gap-2 mt-2 shrink-0">
-              <app-button 
+              <button 
                 type="button" 
-                variant="outline" 
-                class="flex-1"
+                class="flex-1 py-2 px-4 border border-border-light rounded-lg text-xs font-semibold text-text-primary hover:bg-neutral-50 active:scale-[0.98] transition-all cursor-pointer bg-white"
                 [disabled]="submitting()"
                 (click)="cancelEditing()">
                 Cancelar
-              </app-button>
-              <app-button 
+              </button>
+              <button 
                 type="submit" 
-                variant="primary" 
-                class="flex-1"
-                [disabled]="submitting()">
-                Salvar
-              </app-button>
+                class="flex-1 py-2 px-4 bg-text-primary text-white border border-transparent rounded-lg text-xs font-semibold hover:bg-neutral-800 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                [disabled]="submitting() || editForm.invalid">
+                @if (submitting()) {
+                  <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                } @else {
+                  Salvar
+                }
+              </button>
             </div>
           </form>
         }

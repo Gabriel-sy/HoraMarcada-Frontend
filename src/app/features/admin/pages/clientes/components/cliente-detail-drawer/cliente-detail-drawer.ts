@@ -5,13 +5,11 @@ import { AdminApiService } from '../../../../services/admin-api.service';
 import { ToastService } from '../../../../../../../shared/services/toast.service';
 import { CustomerDetailDto, UpdateCustomerInput } from '../../../../../booking/models/customer.model';
 import { SpinnerComponent } from '../../../../../../../shared/components/spinner/spinner';
-import { InputComponent } from '../../../../../../../shared/components/input/input';
-import { ButtonComponent } from '../../../../../../../shared/components/button/button';
 
 @Component({
   selector: 'app-cliente-detail-drawer',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SpinnerComponent, InputComponent, ButtonComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, SpinnerComponent],
   templateUrl: './cliente-detail-drawer.html',
   styleUrl: './cliente-detail-drawer.css'
 })

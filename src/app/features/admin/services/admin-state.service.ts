@@ -238,39 +238,51 @@ export class AdminStateService {
     return this.loadProfessionals(storeId, true);
   }
 
+  private isSameDay(date1: Date, date2: Date): boolean {
+    return date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate();
+  }
+
+  private updateLocalAppointmentsState(appointment: Appointment, eventType: string): void {
+    if (eventType === 'INSERT') {
+      this._agendaAppointments.update(prev =>
+        [...prev, appointment].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+      );
+    } else if (eventType === 'UPDATE') {
+      this._agendaAppointments.update(prev =>
+        prev.map(a => a.id === appointment.id ? appointment : a)
+      );
+    }
+    this._agendaCacheKey.set(null);
+  }
+
   async applyRealtimeEvent(
     payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>,
-    storeId: string
+    storeId: string,
+    selectedDate: Date
   ): Promise<{ appointment: Appointment | null; eventType: string }> {
     const { eventType } = payload;
 
     const record = payload.new as Record<string, unknown>;
     const appointmentId = record?.['id'] as string | undefined;
-    if (!appointmentId) return { appointment: null, eventType };
+    if (!appointmentId) {
+      return { appointment: null, eventType };
+    }
 
-    let appt: Appointment | null = null;
+    let appointment: Appointment | null = null;
     try {
-      appt = await firstValueFrom(this.apiService.getAppointmentById(appointmentId, storeId));
+      appointment = await firstValueFrom(this.apiService.getAppointmentById(appointmentId, storeId));
     } catch {
       return { appointment: null, eventType };
     }
 
-    if (appt) {
-      if (eventType === 'INSERT') {
-        this._agendaAppointments.update(prev =>
-          [...prev, appt!].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-        );
-      }
-      if (eventType === 'UPDATE') {
-        this._agendaAppointments.update(prev =>
-          prev.map(a => a.id === appt!.id ? appt! : a)
-        );
-      }
-      this._agendaCacheKey.set(null);
+    if (appointment && this.isSameDay(new Date(appointment.startTime), selectedDate)) {
+      this.updateLocalAppointmentsState(appointment, eventType);
     }
 
-    const isCancellation = eventType === 'UPDATE' && appt.status === AppointmentStatus.Canceled;
-    return { appointment: appt, eventType: isCancellation ? 'CANCEL' : eventType };
+    const isCancellation = eventType === 'UPDATE' && appointment.status === AppointmentStatus.Canceled;
+    return { appointment, eventType: isCancellation ? 'CANCEL' : eventType };
   }
 
   setCustomersSearchQuery(query: string): void {

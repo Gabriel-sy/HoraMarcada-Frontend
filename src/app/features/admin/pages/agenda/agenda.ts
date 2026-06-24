@@ -87,6 +87,8 @@ export class AgendaComponent implements OnInit {
   readonly preselectedProfessionalId = signal<string | null>(null);
   readonly preselectedTime = signal<string | null>(null);
   private hasInitializedProfessionals = false;
+  private readonly pendingLocalCreations = new Set<string>();
+  private readonly pendingLocalCancellations = new Set<string>();
 
   readonly activeProfessionalsList = computed(() => {
     const selectedIds = this.selectedSidebarProfessionalIds();
@@ -352,42 +354,76 @@ export class AgendaComponent implements OnInit {
     });
   }
 
+  private checkAndClearLocalAction(
+    record: { start_time?: string; professional_id?: string } | null,
+    appointment: Appointment | null
+  ): boolean {
+    const recordKey = record?.professional_id && record?.start_time
+      ? `${record.professional_id}_${new Date(record.start_time).getTime()}`
+      : null;
+
+    if (recordKey && this.pendingLocalCreations.has(recordKey)) {
+      this.pendingLocalCreations.delete(recordKey);
+      return true;
+    }
+
+    if (appointment && this.pendingLocalCancellations.has(appointment.id)) {
+      this.pendingLocalCancellations.delete(appointment.id);
+      return true;
+    }
+
+    return false;
+  }
+
+  private showRealtimeNotification(eventType: string, appointment: Appointment | null): void {
+    this.soundService.play();
+    const msg = this.buildRealtimeToastMessage(appointment);
+    if (eventType === 'INSERT') {
+      this.toastService.success("Novo agendamento para " + msg, 10000);
+    } else if (eventType === 'UPDATE') {
+      this.toastService.info("Agendamento atualizado para " + msg, 10000);
+    } else if (eventType === 'CANCEL') {
+      this.toastService.error("Agendamento cancelado para " + msg, 10000);
+    }
+  }
+
   private subscribeToRealtimeAppointments(storeId: string): void {
     this.realtimeService.watchAppointments(storeId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(async payload => {
-        const record = (payload.new ?? payload.old) as { start_time?: string } | null;
-        console.log(record);
+        const record = (payload.new ?? payload.old) as { id?: string; start_time?: string; professional_id?: string } | null;
         if (!record?.start_time) {
           return;
         }
-        const eventDate = new Date(record.start_time);
-        const selected = this.selectedDate();
-        const isSameDay =
-          eventDate.getFullYear() === selected.getFullYear() &&
-          eventDate.getMonth() === selected.getMonth() &&
-          eventDate.getDate() === selected.getDate();
-        if (!isSameDay) {
+        const { appointment, eventType } = await this.stateService.applyRealtimeEvent(payload, storeId, this.selectedDate());
+        if (this.checkAndClearLocalAction(record, appointment)) {
           return;
         }
-        const { appointment, eventType } = await this.stateService.applyRealtimeEvent(payload, storeId);
-        this.soundService.play();
-        const msg = this.buildRealtimeToastMessage(appointment);
-        if (eventType === 'INSERT') {
-          this.toastService.success("Novo agendamento para " + msg, 10000);
-        } else if (eventType === 'UPDATE') {
-          this.toastService.info("Agendamento atualizado para " + msg, 10000);
-        } else if (eventType === 'CANCEL') {
-          this.toastService.error("Agendamento cancelado para " + msg, 10000);
-        }
+        this.showRealtimeNotification(eventType, appointment);
       });
   }
 
   private buildRealtimeToastMessage(appt: Appointment | null): string {
     if (!appt) return 'Agendamento atualizado.';
+
+    const apptDate = new Date(appt.startTime);
+    const selected = this.selectedDate();
+    const isSameDay =
+      apptDate.getFullYear() === selected.getFullYear() &&
+      apptDate.getMonth() === selected.getMonth() &&
+      apptDate.getDate() === selected.getDate();
+
     const time = this.datePipe.transform(appt.startTime, 'HH:mm') ?? '';
     const prof = this.professionals().find(p => p.id === appt.professionalId);
     const parts = [appt.customerName];
+
+    if (!isSameDay) {
+      const dateStr = this.datePipe.transform(appt.startTime, 'dd/MM') ?? '';
+      if (dateStr) {
+        parts.push(`no dia ${dateStr}`);
+      }
+    }
+
     if (time) parts.push(`às ${time}`);
     if (prof) parts.push(`com ${prof.name}`);
     return parts.join(' ');
@@ -470,13 +506,19 @@ export class AgendaComponent implements OnInit {
     this.canceling.set(true);
     this.cancelError.set(null);
 
+    this.pendingLocalCancellations.add(appt.id);
+    const timeoutId = setTimeout(() => this.pendingLocalCancellations.delete(appt.id), 15000);
+
     this.adminApiService.cancelAppointment(appt.id, sId).subscribe({
       next: () => {
         this.canceling.set(false);
         this.closeCancelModal();
+        this.toastService.success('Agendamento cancelado com sucesso.');
         this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId(), true);
       },
       error: () => {
+        clearTimeout(timeoutId);
+        this.pendingLocalCancellations.delete(appt.id);
         this.cancelError.set('Erro ao cancelar agendamento. Por favor, tente novamente.');
         this.canceling.set(false);
       }
@@ -541,6 +583,10 @@ export class AgendaComponent implements OnInit {
       startTime: event.startTime
     };
 
+    const creationKey = `${event.professionalId}_${new Date(event.startTime).getTime()}`;
+    this.pendingLocalCreations.add(creationKey);
+    const timeoutId = setTimeout(() => this.pendingLocalCreations.delete(creationKey), 15000);
+
     this.bookingApiService.bookAppointment(input).subscribe({
       next: () => {
         this.submittingCreate.set(false);
@@ -549,6 +595,8 @@ export class AgendaComponent implements OnInit {
         this.loadAppointments(sId, this.selectedDate(), this.selectedProfessionalId(), true);
       },
       error: (err) => {
+        clearTimeout(timeoutId);
+        this.pendingLocalCreations.delete(creationKey);
         const message = err.error?.detail || err.error?.title || 'Erro ao criar agendamento.';
         this.createError.set(message);
         this.submittingCreate.set(false);

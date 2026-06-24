@@ -3,7 +3,6 @@ export interface CustomerListDto {
   storeId: string;
   name: string;
   whatsApp: string;
-  email: string | null;
   totalAppointments: number;
   lastVisit: string | null;
   createdAt: string;
@@ -14,7 +13,6 @@ export interface CustomerDetailDto {
   storeId: string;
   name: string;
   whatsApp: string;
-  email: string | null;
   createdAt: string;
   appointmentHistory: CustomerAppointmentHistoryDto[];
 }
@@ -31,7 +29,6 @@ export interface CustomerAppointmentHistoryDto {
 export interface UpdateCustomerInput {
   name: string;
   whatsApp: string;
-  email: string | null;
 }
 
 export interface PagedResult<T> {

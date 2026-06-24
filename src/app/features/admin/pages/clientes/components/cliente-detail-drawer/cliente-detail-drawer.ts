@@ -37,8 +37,7 @@ export class ClienteDetailDrawerComponent {
   constructor() {
     this.editForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100)]],
-      whatsApp: ['', [Validators.required, Validators.pattern(/^\+?[1-9]\d{7,14}$/)]],
-      email: ['', [Validators.email]]
+      whatsApp: ['', [Validators.required, Validators.pattern(/^\+?[1-9]\d{7,14}$/)]]
     });
 
     effect(() => {
@@ -61,8 +60,7 @@ export class ClienteDetailDrawerComponent {
         this.customer.set(details);
         this.editForm.patchValue({
           name: details.name,
-          whatsApp: details.whatsApp,
-          email: details.email || ''
+          whatsApp: details.whatsApp
         });
         this.loading.set(false);
       },
@@ -83,8 +81,7 @@ export class ClienteDetailDrawerComponent {
     if (details) {
       this.editForm.patchValue({
         name: details.name,
-        whatsApp: details.whatsApp,
-        email: details.email || ''
+        whatsApp: details.whatsApp
       });
     }
   }
@@ -103,8 +100,7 @@ export class ClienteDetailDrawerComponent {
     const formValue = this.editForm.value;
     const payload: UpdateCustomerInput = {
       name: formValue.name,
-      whatsApp: formValue.whatsApp,
-      email: formValue.email || null
+      whatsApp: formValue.whatsApp
     };
 
     this.apiService.updateCustomer(sId, cId, payload).subscribe({

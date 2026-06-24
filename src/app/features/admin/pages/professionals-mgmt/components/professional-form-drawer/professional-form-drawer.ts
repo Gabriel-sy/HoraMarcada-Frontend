@@ -41,7 +41,6 @@ export class ProfessionalFormDrawerComponent {
   deactivate = output<void>();
 
   formName = signal<string>('');
-  formEmail = signal<string>('');
   formWhatsApp = signal<string>('');
   formPhotoUrl = signal<string>('');
   formWeeklyHours = signal<DayHoursConfig[]>([]);
@@ -52,7 +51,6 @@ export class ProfessionalFormDrawerComponent {
       const p = this.professional();
       if (p) {
         this.formName.set(p.name);
-        this.formEmail.set(p.email ? p.email.value : '');
         this.formWhatsApp.set(p.whatsApp ? p.whatsApp.value : '');
         this.formPhotoUrl.set(p.photoUrl || '');
         this.activeTab.set('basic');
@@ -86,7 +84,6 @@ export class ProfessionalFormDrawerComponent {
         this.formWeeklyHours.set(defaultHours);
       } else {
         this.formName.set('');
-        this.formEmail.set('');
         this.formWhatsApp.set('');
         this.formPhotoUrl.set('');
         this.activeTab.set('basic');
@@ -153,7 +150,6 @@ export class ProfessionalFormDrawerComponent {
       name: this.formName().trim(),
       photoUrl: this.formPhotoUrl().trim() || null,
       whatsApp: this.formWhatsApp().trim() || null,
-      email: this.formEmail().trim() || null,
       weeklyHours: weeklyHoursPayload
     };
 

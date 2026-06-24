@@ -1,5 +1,4 @@
 import { PhoneNumber } from './phone-number.model';
-import { Email } from './email.model';
 import { WeeklyHours } from './weekly-hours.model';
 
 export interface Professional {
@@ -8,7 +7,6 @@ export interface Professional {
   name: string;
   photoUrl?: string | null;
   whatsApp?: PhoneNumber | null;
-  email?: Email | null;
   active: boolean;
   createdAt: string;
   weeklySchedules?: WeeklyHours[];

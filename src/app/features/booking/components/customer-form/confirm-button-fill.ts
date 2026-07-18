@@ -1,9 +1,10 @@
+import { getSuccessOverlayTiming } from '../../success-overlay-timing';
+
 export type ConfirmFillPhase = 'idle' | 'filling' | 'success';
 
 const FILL_BASE_MS = 3200;
 const HOLD_RATIO = 0.92;
 const FINISH_MIN_MS = 320;
-const CHECKMARK_HOLD_MS = 1100;
 const NORMAL_SPEED = 1;
 const SLOW_SPEED_MIN = 0.18;
 const SLOW_SPEED_MAX = 0.35;
@@ -108,7 +109,10 @@ export class ConfirmButtonFillController {
     if (t >= 1) {
       this.rafId = null;
       this.onPhaseChange?.('success');
-      this.checkmarkTimeout = setTimeout(() => this.onReady?.(), CHECKMARK_HOLD_MS);
+      this.checkmarkTimeout = setTimeout(
+        () => this.onReady?.(),
+        getSuccessOverlayTiming().buttonHoldMs
+      );
       return;
     }
 

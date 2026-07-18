@@ -7,3 +7,61 @@
   color: var(--color-text-secondary);
   display: block;
 }
+
+.success-transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background-color: #15803d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.success-transition-overlay.entering {
+  animation: overlay-reveal var(--overlay-expand-ms, 1.75s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.success-transition-overlay.leaving {
+  animation: overlay-fade-out var(--overlay-fade-ms, 1s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.success-transition-overlay__check {
+  width: 4rem;
+  height: 4rem;
+  color: #ffffff;
+  opacity: 0;
+  transform: scale(0.7);
+}
+
+.success-transition-overlay.entering .success-transition-overlay__check {
+  animation: overlay-check-pop 0.5s var(--overlay-check-delay-ms, 0.65s) cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes overlay-reveal {
+  from {
+    clip-path: circle(0% at 50% 90%);
+  }
+  to {
+    clip-path: circle(150% at 50% 90%);
+  }
+}
+
+@keyframes overlay-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes overlay-check-pop {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

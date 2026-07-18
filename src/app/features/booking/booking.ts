@@ -8,6 +8,10 @@ import { ChooseProfessionalComponent } from './components/choose-professional/ch
 import { ChooseTimeComponent } from './components/choose-time/choose-time';
 import { CustomerFormComponent } from './components/customer-form/customer-form';
 import { DomSanitizer } from '@angular/platform-browser';
+import {
+  getSuccessOverlayTiming,
+  SuccessOverlayTiming
+} from './success-overlay-timing';
 
 @Component({
   selector: 'app-booking',
@@ -47,6 +51,8 @@ export class BookingComponent implements OnInit {
   selectedTime = signal<string | null>(null);
   assignedProfessional = signal<any>(null);
   bookingSuccess = signal<boolean>(false);
+  successOverlayState = signal<'idle' | 'entering' | 'leaving'>('idle');
+  successOverlayTiming = signal<SuccessOverlayTiming>(getSuccessOverlayTiming());
   createdAppointment = signal<any>(null);
   submitting = signal<boolean>(false);
   submitSucceeded = signal<boolean>(false);
@@ -156,8 +162,22 @@ export class BookingComponent implements OnInit {
   }
 
   onConfirmationReady(): void {
-    this.bookingSuccess.set(true);
-    this.submitting.set(false);
+    const timing = getSuccessOverlayTiming();
+    this.successOverlayTiming.set(timing);
+    this.successOverlayState.set('entering');
+
+    setTimeout(() => {
+      this.bookingSuccess.set(true);
+      this.submitting.set(false);
+    }, timing.mountContentMs);
+
+    setTimeout(() => {
+      this.successOverlayState.set('leaving');
+
+      setTimeout(() => {
+        this.successOverlayState.set('idle');
+      }, timing.fadeOutMs);
+    }, timing.circleExpandMs + timing.greenHoldMs);
   }
 
   getBookingSummary() {
@@ -200,6 +220,7 @@ export class BookingComponent implements OnInit {
     this.assignedProfessional.set(null);
     this.createdAppointment.set(null);
     this.bookingSuccess.set(false);
+    this.successOverlayState.set('idle');
     this.submitting.set(false);
     this.submitSucceeded.set(false);
     this.formError.set(null);

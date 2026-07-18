@@ -49,6 +49,7 @@ export class BookingComponent implements OnInit {
   bookingSuccess = signal<boolean>(false);
   createdAppointment = signal<any>(null);
   submitting = signal<boolean>(false);
+  submitSucceeded = signal<boolean>(false);
   formError = signal<string | null>(null);
 
   ngOnInit(): void {
@@ -124,6 +125,7 @@ export class BookingComponent implements OnInit {
 
   onFormSubmitted(customerData: { name: string, whatsapp: string }): void {
     this.submitting.set(true);
+    this.submitSucceeded.set(false);
     this.formError.set(null);
 
     const profId = this.selectedProfessional()?.id === 'any'
@@ -142,15 +144,20 @@ export class BookingComponent implements OnInit {
     this.apiService.bookAppointment(input).subscribe({
       next: (res) => {
         this.createdAppointment.set(res);
-        this.bookingSuccess.set(true);
-        this.submitting.set(false);
+        this.submitSucceeded.set(true);
       },
       error: (err) => {
         const message = err.error?.detail || err.error?.title || 'Ocorreu um erro ao realizar o agendamento. Verifique se o horário ainda está disponível.';
         this.formError.set(message);
+        this.submitSucceeded.set(false);
         this.submitting.set(false);
       }
     });
+  }
+
+  onConfirmationReady(): void {
+    this.bookingSuccess.set(true);
+    this.submitting.set(false);
   }
 
   getBookingSummary() {
@@ -193,6 +200,8 @@ export class BookingComponent implements OnInit {
     this.assignedProfessional.set(null);
     this.createdAppointment.set(null);
     this.bookingSuccess.set(false);
+    this.submitting.set(false);
+    this.submitSucceeded.set(false);
     this.formError.set(null);
   }
 }

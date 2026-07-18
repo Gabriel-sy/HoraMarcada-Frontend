@@ -141,7 +141,9 @@
           <app-customer-form
             [summary]="getBookingSummary()"
             [loading]="submitting()"
-            (submitted)="onFormSubmitted($event)">
+            [succeeded]="submitSucceeded()"
+            (submitted)="onFormSubmitted($event)"
+            (confirmationReady)="onConfirmationReady()">
           </app-customer-form>
         </div>
       </div>

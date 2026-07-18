@@ -51,16 +51,25 @@
     </div>
 
     <div class="mt-0">
-      <app-button
+      <button
         type="submit"
-        [disabled]="form.invalid || loading()"
-        variant="accent">
-        @if (loading()) {
-          <div class="w-5 h-5 border-2 border-text-primary border-t-transparent rounded-full animate-spin"></div>
-        } @else {
-          Confirmar Agendamento
-        }
-      </app-button>
+        class="confirm-booking-btn"
+        [class.is-busy]="isBusy()"
+        [disabled]="form.invalid || isBusy()">
+        <span
+          class="confirm-booking-btn__fill"
+          [style.width.%]="fillPercent()">
+        </span>
+        <span class="confirm-booking-btn__content">
+          @if (phase() === 'success') {
+            <svg class="confirm-booking-btn__check" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          } @else {
+            Confirmar Agendamento
+          }
+        </span>
+      </button>
     </div>
   </form>
 </div>

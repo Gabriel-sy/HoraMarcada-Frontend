@@ -18,7 +18,7 @@
   justify-content: center;
   background-color: var(--color-accent);
   color: var(--color-text-primary);
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
 }
 
 .confirm-booking-btn:hover:not(:disabled):not(.is-busy) {
@@ -42,17 +42,26 @@
 }
 
 .confirm-booking-btn.is-busy:disabled {
-  background-color: var(--color-accent);
-  color: var(--color-text-primary);
+  background-color: var(--color-accent-light);
+  color: #3f6212;
+}
+
+.confirm-booking-btn.is-success:disabled {
+  background-color: #15803d;
+  color: #ffffff;
 }
 
 .confirm-booking-btn__fill {
   position: absolute;
   inset: 0 auto 0 0;
   width: 0;
-  background-color: #6f9a45;
-  transition: none;
+  background-color: var(--color-accent);
+  transition: background-color 0.3s ease;
   pointer-events: none;
+}
+
+.confirm-booking-btn.is-success .confirm-booking-btn__fill {
+  background-color: #15803d;
 }
 
 .confirm-booking-btn__content {
@@ -61,22 +70,38 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 1.25rem;
+  height: 1.75rem;
+  min-height: 1.75rem;
 }
 
 .confirm-booking-btn__check {
-  width: 1.25rem;
-  height: 1.25rem;
-  animation: confirm-check-in 0.2s ease-out;
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
-@keyframes confirm-check-in {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
+.confirm-booking-btn__check path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: confirm-check-draw 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.confirm-booking-btn__spinner {
+  width: 1.525rem;
+  height: 1.525rem;
+  border: 2px solid #3f6212;
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: confirm-spin 0.7s linear infinite;
+}
+
+@keyframes confirm-check-draw {
   to {
-    opacity: 1;
-    transform: scale(1);
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes confirm-spin {
+  to {
+    transform: rotate(360deg);
   }
 }

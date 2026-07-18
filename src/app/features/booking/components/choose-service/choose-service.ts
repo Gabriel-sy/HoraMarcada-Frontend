@@ -39,6 +39,11 @@ export class ChooseServiceComponent implements OnInit {
     this.selected.emit(service);
   }
 
+  formatPrice(price: number | null | undefined): string {
+    if (price == null) return '';
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
+  }
+
   private loadServices(storeId: string): void {
     this.loading.set(true);
     this.error.set(null);

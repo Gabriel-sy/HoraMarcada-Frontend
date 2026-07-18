@@ -42,7 +42,7 @@ export class ServiceFormDrawerComponent {
       const s = this.service();
       if (s) {
         this.formName.set(s.name);
-        this.formPrice.set(s.price ? s.price.amount : null);
+        this.formPrice.set(s.price ?? null);
         this.formDuration.set(s.durationMinutes);
         this.formActive.set(s.active);
         this.formProfessionalIds.set(s.professionalIds || []);

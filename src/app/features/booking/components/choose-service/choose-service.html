@@ -22,8 +22,8 @@
             <h3 class="font-semibold text-text-primary text-base">{{ service.name }}</h3>
             <p class="text-sm text-text-secondary mt-1">
               {{ service.durationMinutes }} min
-              @if (service.price) {
-                • R$ {{ service.price.amount.toFixed(2) }}
+              @if (service.price != null) {
+                • {{ formatPrice(service.price) }}
               }
             </p>
           </div>

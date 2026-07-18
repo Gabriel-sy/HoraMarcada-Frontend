@@ -177,7 +177,7 @@ export class BookingComponent implements OnInit {
 
     return {
       serviceName: svc.name,
-      servicePrice: svc.price?.amount?.toFixed(2),
+      servicePrice: svc.price?.toFixed(2),
       professionalName: profName,
       date: capitalizedDate,
       time: formattedTime

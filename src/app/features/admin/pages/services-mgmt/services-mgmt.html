@@ -53,6 +53,10 @@
             <span class="font-semibold text-text-primary">
               {{ formatPrice(svc.price) }}
             </span>
+            @if (svc.categoryName) {
+              <span class="text-text-muted">•</span>
+              <span>{{ svc.categoryName }}</span>
+            }
           </div>
         </div>
 

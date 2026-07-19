@@ -57,7 +57,7 @@ export class ServiceFormDrawerComponent {
         this.formDuration.set(s.durationMinutes);
         this.formActive.set(s.active);
         this.formProfessionalIds.set(s.professionalIds || []);
-        this.formCategoryId.set('');
+        this.formCategoryId.set(s.categoryId);
         this.showCreateCategory.set(false);
         this.formNewCategoryName.set('');
       } else {
@@ -135,7 +135,7 @@ export class ServiceFormDrawerComponent {
       this.toastService.error('A duração deve ser maior que zero.');
       return;
     }
-    if (!this.service() && !this.formCategoryId()) {
+    if (!this.formCategoryId()) {
       this.toastService.error('Selecione uma categoria.');
       return;
     }
@@ -145,12 +145,9 @@ export class ServiceFormDrawerComponent {
       durationMinutes: this.formDuration(),
       price: this.formPrice(),
       active: this.formActive(),
-      professionalIds: this.formProfessionalIds()
+      professionalIds: this.formProfessionalIds(),
+      categoryId: this.formCategoryId()
     };
-
-    if (!this.service()) {
-      payload['categoryId'] = this.formCategoryId();
-    }
 
     this.save.emit(payload);
   }

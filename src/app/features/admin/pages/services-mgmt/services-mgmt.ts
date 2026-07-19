@@ -81,8 +81,11 @@ export class ServicesMgmtComponent implements OnInit {
   }
 
   openEditForm(service: Service): void {
+    const sId = this.storeId();
+    if (!sId) return;
+
     this.selectedService.set(service);
-    this.isFormOpen.set(true);
+    this.loadCategories(sId, () => this.isFormOpen.set(true));
   }
 
   private loadCategories(storeId: string, onLoaded?: () => void): void {

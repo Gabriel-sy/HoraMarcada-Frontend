@@ -74,7 +74,7 @@ export class AdminApiService {
     return this.http.post<Service>(`${this.apiUrl}/stores/${storeId}/services`, input);
   }
 
-  updateService(storeId: string, serviceId: string, input: { name: string; durationMinutes: number; price?: number | null; active: boolean; professionalIds: string[] }): Observable<Service> {
+  updateService(storeId: string, serviceId: string, input: { name: string; durationMinutes: number; categoryId: string; price?: number | null; active: boolean; professionalIds: string[] }): Observable<Service> {
     return this.http.put<Service>(`${this.apiUrl}/stores/${storeId}/services/${serviceId}`, input);
   }
 

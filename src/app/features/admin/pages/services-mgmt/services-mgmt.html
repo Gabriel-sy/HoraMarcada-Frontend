@@ -92,9 +92,12 @@
   [submitting]="submitting()"
   [service]="selectedService()"
   [professionals]="professionals()"
+  [storeId]="storeId()"
+  [categories]="categories()"
   (close)="closeForm()"
   (save)="handleSaveService($event)"
-  (delete)="deleteService()">
+  (delete)="deleteService()"
+  (categoriesChanged)="onCategoriesChanged($event)">
 </app-service-form-drawer>
 
 </div>

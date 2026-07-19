@@ -5,6 +5,7 @@ import { AuthService } from '../../../../core/auth/auth.service';
 import { AdminApiService } from '../../services/admin-api.service';
 import { AdminStateService } from '../../services/admin-state.service';
 import { Service } from '../../../booking/models/service.model';
+import { Category } from '../../../booking/models/category.model';
 import { SpinnerComponent } from '../../../../../shared/components/spinner/spinner';
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state';
 import { ServiceFormDrawerComponent } from './components/service-form-drawer/service-form-drawer';
@@ -32,6 +33,7 @@ export class ServicesMgmtComponent implements OnInit {
 
   readonly isFormOpen = signal<boolean>(false);
   readonly selectedService = signal<Service | null>(null);
+  readonly categories = signal<Category[]>([]);
 
   ngOnInit(): void {
     this.loadStoreData();
@@ -71,13 +73,32 @@ export class ServicesMgmtComponent implements OnInit {
   }
 
   openCreateForm(): void {
+    const sId = this.storeId();
+    if (!sId) return;
+
     this.selectedService.set(null);
-    this.isFormOpen.set(true);
+    this.loadCategories(sId, () => this.isFormOpen.set(true));
   }
 
   openEditForm(service: Service): void {
     this.selectedService.set(service);
     this.isFormOpen.set(true);
+  }
+
+  private loadCategories(storeId: string, onLoaded?: () => void): void {
+    this.adminApiService.getStoreCategories(storeId).subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+        onLoaded?.();
+      },
+      error: () => {
+        this.toastService.error('Erro ao carregar categorias.');
+      }
+    });
+  }
+
+  onCategoriesChanged(categories: Category[]): void {
+    this.categories.set(categories);
   }
 
   closeForm(): void {

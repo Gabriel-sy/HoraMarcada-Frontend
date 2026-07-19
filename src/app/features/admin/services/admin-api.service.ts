@@ -5,6 +5,7 @@ import { Store } from '../../booking/models/store.model';
 import { Professional } from '../../booking/models/professional.model';
 import { Appointment } from '../../booking/models/appointment.model';
 import { Service } from '../../booking/models/service.model';
+import { Category } from '../../booking/models/category.model';
 import { TimeBlock } from '../../booking/models/time-block.model';
 import { StoreStatisticsResponse } from '../models/statistics.model';
 import { CustomerListDto, CustomerDetailDto, UpdateCustomerInput, PagedResult } from '../../booking/models/customer.model';
@@ -61,7 +62,15 @@ export class AdminApiService {
     });
   }
 
-  addService(storeId: string, input: { name: string; durationMinutes: number; price?: number | null; professionalIds: string[] }): Observable<Service> {
+  getStoreCategories(storeId: string): Observable<Category[]> {
+    return this.http.get<Category[]>(`${this.apiUrl}/stores/${storeId}/categories`);
+  }
+
+  createCategory(storeId: string, name: string): Observable<Category> {
+    return this.http.post<Category>(`${this.apiUrl}/stores/${storeId}/categories`, { name });
+  }
+
+  addService(storeId: string, input: { name: string; durationMinutes: number; categoryId: string; price?: number | null; professionalIds: string[] }): Observable<Service> {
     return this.http.post<Service>(`${this.apiUrl}/stores/${storeId}/services`, input);
   }
 

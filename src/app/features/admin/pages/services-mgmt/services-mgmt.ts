@@ -59,7 +59,7 @@ export class ServicesMgmtComponent implements OnInit {
   }
 
   private loadServicesAndProfessionals(storeId: string): void {
-    this.stateService.loadServices(storeId).subscribe({
+    this.stateService.loadServices(storeId, true).subscribe({
       next: () => {
         this.loading.set(false);
       },
@@ -120,6 +120,10 @@ export class ServicesMgmtComponent implements OnInit {
       .filter(p => professionalIds.includes(p.id))
       .map(p => p.name)
       .join(', ');
+  }
+
+  getCategoryName(service: Service): string {
+    return service.categoryName?.trim() || '—';
   }
 
   handleSaveService(payload: any): void {

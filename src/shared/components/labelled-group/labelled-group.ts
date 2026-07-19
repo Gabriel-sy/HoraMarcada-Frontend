@@ -7,5 +7,6 @@ import { Component, input } from '@angular/core';
 })
 export class LabelledGroupComponent {
   label = input.required<string>();
+  labelClass = input('text-sm text-text-secondary mb-2');
   contentClass = input<string>('');
 }

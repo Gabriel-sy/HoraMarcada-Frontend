@@ -30,6 +30,7 @@ export class SelectComponent implements ControlValueAccessor {
   value = signal<any>(null);
   disabled = signal<boolean>(false);
   isOpen = signal<boolean>(false);
+  dropdownAnimated = signal<boolean>(false);
   focusedOptionIndex = signal<number>(-1);
 
   onChange: any = () => {};
@@ -68,12 +69,14 @@ export class SelectComponent implements ControlValueAccessor {
     return found ? this.getOptionLabel(found) : '';
   });
 
-  toggleDropdown(): void {
+  toggleDropdown(event?: Event): void {
+    event?.stopPropagation();
     if (this.disabled()) {
       return;
     }
     this.isOpen.update(open => !open);
     if (this.isOpen()) {
+      this.dropdownAnimated.set(true);
       const currentVal = this.value();
       const index = this.options().findIndex(opt => this.getOptionValue(opt) === currentVal);
       this.focusedOptionIndex.set(index !== -1 ? index : 0);

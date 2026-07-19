@@ -50,9 +50,9 @@ export class ProfessionalFormDrawerComponent {
     effect(() => {
       const p = this.professional();
       if (p) {
-        this.formName.set(p.name);
-        this.formWhatsApp.set(p.whatsApp ? p.whatsApp.value : '');
-        this.formPhotoUrl.set(p.photoUrl || '');
+        this.formName.set(p.name ?? '');
+        this.formWhatsApp.set(p.whatsApp?.value ?? '');
+        this.formPhotoUrl.set(p.photoUrl ?? '');
         this.activeTab.set('basic');
 
         const defaultHours = [
@@ -117,7 +117,8 @@ export class ProfessionalFormDrawerComponent {
   }
 
   submitForm(): void {
-    if (!this.formName().trim()) {
+    const name = (this.formName() ?? '').trim();
+    if (!name) {
       this.toastService.error('O nome do profissional é obrigatório.');
       return;
     }
@@ -147,9 +148,9 @@ export class ProfessionalFormDrawerComponent {
     });
 
     const payload = {
-      name: this.formName().trim(),
-      photoUrl: this.formPhotoUrl().trim() || null,
-      whatsApp: this.formWhatsApp().trim() || null,
+      name,
+      photoUrl: (this.formPhotoUrl() ?? '').trim() || null,
+      whatsApp: (this.formWhatsApp() ?? '').trim() || null,
       weeklyHours: weeklyHoursPayload
     };
 

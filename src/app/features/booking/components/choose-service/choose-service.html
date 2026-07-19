@@ -3,12 +3,17 @@
 
   @if (loading()) {
     <div class="flex-1 flex items-center justify-center py-12">
-      <div class="w-6 h-6 border-2 border-text-primary border-t-transparent rounded-full animate-spin"></div>
+      <div
+        class="w-6 h-6 border-2 border-text-primary border-t-transparent rounded-full animate-spin"
+      ></div>
     </div>
   } @else if (error()) {
     <div class="p-6 text-center border border-border-light rounded-lg">
       <p class="text-text-secondary mb-4">{{ error() }}</p>
-      <button (click)="retryLoad()" class="px-4 py-2 border border-text-primary text-text-primary text-sm font-semibold rounded-md hover:bg-gray-50 cursor-pointer">
+      <button
+        (click)="retryLoad()"
+        class="px-4 py-2 border border-text-primary text-text-primary text-sm font-semibold rounded-md hover:bg-gray-50 cursor-pointer"
+      >
         Tentar novamente
       </button>
     </div>
@@ -18,13 +23,18 @@
         Não há serviços disponíveis para agendamento.
       </div>
     } @else {
-      <div class="space-y-6">
+      <div class="flex flex-col gap-5">
         @for (group of serviceGroups(); track group.category.id) {
-          <app-labelled-group [label]="group.category.name" contentClass="flex flex-col gap-4">
+          <app-labelled-group
+            [label]="group.category.name"
+            labelClass="text-md text-text-secondary mb-2"
+            contentClass="flex flex-col gap-4"
+          >
             @for (service of group.services; track service.id) {
               <app-selection-card
                 [selected]="selectedServiceId() === service.id"
-                (select)="selectService(service)">
+                (select)="selectService(service)"
+              >
                 <div card-content>
                   <h4 class="font-semibold text-text-primary text-base">{{ service.name }}</h4>
                   <p class="text-sm text-text-secondary mt-1">

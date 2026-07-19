@@ -4,6 +4,9 @@ import { Component, input } from '@angular/core';
   selector: 'app-labelled-group',
   standalone: true,
   templateUrl: './labelled-group.html',
+  host: {
+    class: 'block first:[&_h3]:mt-0',
+  },
 })
 export class LabelledGroupComponent {
   label = input.required<string>();

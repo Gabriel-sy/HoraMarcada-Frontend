@@ -31,7 +31,8 @@
   </label>
   
   <div 
-    class="absolute left-0 right-0 mt-0.5 bg-white border border-border-light rounded-md shadow-lg z-50 max-h-{{ maxHeight() }} overflow-y-auto origin-top py-1 opacity-0 scale-y-0 pointer-events-none"
+    class="absolute left-0 right-0 mt-0.5 bg-white border border-border-light rounded-md shadow-lg z-50 overflow-y-auto origin-top py-1 opacity-0 scale-y-0 pointer-events-none"
+    [style.max-height]="dropdownMaxHeight()"
     [class.transition-all]="dropdownAnimated()"
     [class.duration-200]="dropdownAnimated()"
     [class.opacity-100]="isOpen()"

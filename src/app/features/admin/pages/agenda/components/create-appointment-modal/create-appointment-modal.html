@@ -28,24 +28,34 @@
   </div>
 
   <div #scrollContainer class="flex-1 overflow-y-auto p-6 flex flex-col md:grid md:grid-cols-3 md:gap-6 gap-6">
-    <div class="flex flex-col gap-4 md:border-r md:border-border-light md:pr-6">
+    <div class="flex flex-col gap-2 md:border-r md:border-border-light md:pr-6">
       <h4 class="m-0 text-xs font-bold uppercase tracking-wider text-text-muted">Serviço</h4>
-      <div class="flex flex-col gap-3">
-        @for (service of services(); track service.id) {
-          <app-selection-card
-            [selected]="selectedServiceId() === service.id"
-            (select)="selectService(service)">
-            <div card-content>
-              <h5 class="font-semibold text-text-primary text-sm m-0">{{ service.name }}</h5>
-              <p class="text-xs text-text-secondary mt-1 m-0">
-                {{ service.durationMinutes }} min • {{ formatPrice(service.price) }}
-              </p>
-            </div>
-          </app-selection-card>
-        } @empty {
-          <p class="text-sm text-text-secondary m-0">Nenhum serviço disponível.</p>
-        }
-      </div>
+      @if (serviceGroups().length === 0) {
+        <p class="text-sm text-text-secondary m-0">Nenhum serviço disponível.</p>
+      } @else {
+        <div class="flex flex-col gap-4">
+          @for (group of serviceGroups(); track group.category.id) {
+            <app-labelled-group
+              [label]="group.category.name"
+              labelClass="text-xs text-text-secondary mb-1.5"
+              contentClass="flex flex-col gap-2">
+              @for (service of group.services; track service.id) {
+                <app-selection-card
+                  [compact]="true"
+                  [selected]="selectedServiceId() === service.id"
+                  (select)="selectService(service)">
+                  <div card-content>
+                    <h5 class="font-semibold text-text-primary text-xs m-0">{{ service.name }}</h5>
+                    <p class="text-[11px] text-text-secondary mt-0.5 m-0">
+                      {{ service.durationMinutes }} min • {{ formatPrice(service.price) }}
+                    </p>
+                  </div>
+                </app-selection-card>
+              }
+            </app-labelled-group>
+          }
+        </div>
+      }
     </div>
 
     <div class="flex flex-col gap-4 md:border-r md:border-border-light md:pr-6">
@@ -55,20 +65,21 @@
           <p class="text-xs text-text-secondary m-0">Selecione um serviço primeiro para carregar os profissionais.</p>
         </div>
       } @else {
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-2">
           @for (professional of filteredProfessionals(); track professional.id) {
             <app-selection-card
+              [compact]="true"
               [selected]="selectedProfessionalId() === professional.id"
               (select)="selectProfessional(professional)">
-              <div card-content class="flex items-center gap-3">
+              <div card-content class="flex items-center gap-2">
                 @if (professional.photoUrl) {
-                  <img [src]="professional.photoUrl" class="w-8 h-8 rounded-full object-cover" [alt]="professional.name" />
+                  <img [src]="professional.photoUrl" class="w-6 h-6 rounded-full object-cover" [alt]="professional.name" />
                 } @else {
-                  <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-text-secondary font-semibold text-xs">
+                  <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-text-secondary font-semibold text-[10px]">
                     {{ professional.name.charAt(0).toUpperCase() }}
                   </div>
                 }
-                <h5 class="font-semibold text-text-primary text-sm m-0">{{ professional.name }}</h5>
+                <h5 class="font-semibold text-text-primary text-xs m-0">{{ professional.name }}</h5>
               </div>
             </app-selection-card>
           } @empty {
@@ -105,15 +116,22 @@
           </div>
         } @else {
           @if (slots().length > 0) {
-            <div class="grid grid-cols-4 gap-1.5">
-              @for (slot of slots(); track slot) {
-                <button
-                  type="button"
-                  (click)="selectSlot(slot)"
-                  [class]="'py-2 border text-xs font-bold rounded-lg text-center cursor-pointer transition-all duration-200 ' +
-                           (selectedTime() === slot ? 'border-text-primary bg-accent-light text-text-primary' : 'border-border-light hover:border-text-primary bg-white text-text-primary')">
-                  {{ formatTime(slot) }}
-                </button>
+            <div class="flex flex-col gap-3">
+              @for (group of periodGroups(); track group.key) {
+                <app-labelled-group
+                  [label]="group.label"
+                  labelClass="text-xs text-text-secondary mb-1.5"
+                  contentClass="grid grid-cols-4 gap-1.5">
+                  @for (slot of group.slots; track slot) {
+                    <button
+                      type="button"
+                      (click)="selectSlot(slot)"
+                      [class]="'py-2 border text-xs font-bold rounded-lg text-center cursor-pointer transition-all duration-200 ' +
+                               (selectedTime() === slot ? 'border-text-primary bg-accent-light text-text-primary' : 'border-border-light hover:border-text-primary bg-white text-text-primary')">
+                      {{ formatTime(slot) }}
+                    </button>
+                  }
+                </app-labelled-group>
               }
             </div>
           } @else {

@@ -3,11 +3,19 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { SelectionCardComponent } from '../../../../../../../shared/components/selection-card/selection-card';
+import { LabelledGroupComponent } from '../../../../../../../shared/components/labelled-group/labelled-group';
 import { InputComponent } from '../../../../../../../shared/components/input/input';
 import { ButtonComponent } from '../../../../../../../shared/components/button/button';
 import { BookingApiService } from '../../../../../booking/services/booking-api.service';
+import { groupActiveServicesByCategory } from '../../../../../booking/group-services-by-category';
 import { Service } from '../../../../../booking/models/service.model';
 import { Professional } from '../../../../../booking/models/professional.model';
+
+interface PeriodGroup {
+  key: string;
+  label: string;
+  slots: string[];
+}
 
 @Component({
   selector: 'app-create-appointment-modal',
@@ -16,6 +24,7 @@ import { Professional } from '../../../../../booking/models/professional.model';
     CommonModule,
     ReactiveFormsModule,
     SelectionCardComponent,
+    LabelledGroupComponent,
     InputComponent,
     ButtonComponent
   ],
@@ -68,12 +77,35 @@ export class CreateAppointmentModalComponent implements OnDestroy {
     whatsapp: ['', [Validators.required, Validators.pattern(/^\(\d{2}\) \d{4,5}-\d{4}$/)]]
   });
 
+  serviceGroups = computed(() => groupActiveServicesByCategory(this.services()));
+
   filteredProfessionals = computed(() => {
     const svcId = this.selectedServiceId();
     if (!svcId) return [];
     const svc = this.services().find(s => s.id === svcId);
     if (!svc) return [];
     return this.professionals().filter(p => p.active && svc.professionalIds.includes(p.id));
+  });
+
+  periodGroups = computed<PeriodGroup[]>(() => {
+    const groups: PeriodGroup[] = [
+      { key: 'manha', label: 'Manhã', slots: [] },
+      { key: 'tarde', label: 'Tarde', slots: [] },
+      { key: 'noite', label: 'Noite', slots: [] },
+    ];
+
+    for (const slot of this.slots()) {
+      const hour = new Date(slot).getHours();
+      if (hour < 12) {
+        groups[0].slots.push(slot);
+      } else if (hour < 18) {
+        groups[1].slots.push(slot);
+      } else {
+        groups[2].slots.push(slot);
+      }
+    }
+
+    return groups.filter(group => group.slots.length > 0);
   });
 
   constructor() {

@@ -7,6 +7,7 @@ import { Component, input, output } from '@angular/core';
 })
 export class SelectionCardComponent {
   selected = input<boolean>(false);
+  compact = input<boolean>(false);
   select = output<void>();
 
   onSelect(): void {

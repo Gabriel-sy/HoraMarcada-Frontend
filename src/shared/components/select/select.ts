@@ -33,6 +33,8 @@ export class SelectComponent implements ControlValueAccessor {
   dropdownAnimated = signal<boolean>(false);
   focusedOptionIndex = signal<number>(-1);
 
+  dropdownMaxHeight = computed(() => `${Number(this.maxHeight()) * 0.25}rem`);
+
   onChange: any = () => {};
   onTouch: any = () => {};
 

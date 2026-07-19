@@ -114,9 +114,13 @@
              [ngClass]="isProfessionalSelected(prof.id) ? 'border-text-primary bg-neutral-50 font-bold' : 'border-border-light bg-white hover:border-text-muted'"
              (click)="toggleProfessional(prof.id)">
              <div class="flex items-center gap-2.5 min-w-0">
-               <div class="w-7 h-7 rounded-full bg-neutral-100 border border-neutral-200/50 flex items-center justify-center font-bold text-xs shrink-0 text-text-primary">
-                 {{ prof.name.charAt(0).toUpperCase() }}
-               </div>
+               @if (prof.photoUrl) {
+                 <img [src]="prof.photoUrl" [alt]="prof.name" class="w-7 h-7 rounded-full object-cover shrink-0 border border-neutral-200/50" />
+               } @else {
+                 <div class="w-7 h-7 rounded-full bg-neutral-100 border border-neutral-200/50 flex items-center justify-center font-bold text-xs shrink-0 text-text-primary">
+                   {{ prof.name.charAt(0).toUpperCase() }}
+                 </div>
+               }
                <span class="text-xs text-text-primary truncate">{{ prof.name }}</span>
              </div>
              @if (isProfessionalSelected(prof.id)) {

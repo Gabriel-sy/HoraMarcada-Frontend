@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { BookingApiService } from '../../services/booking-api.service';
 import { Service } from '../../models/service.model';
+import { groupServicesByCategory } from '../../group-services-by-category';
 import { SelectionCardComponent } from '../../../../../shared/components/selection-card/selection-card';
 
 @Component({
@@ -18,6 +19,7 @@ export class ChooseServiceComponent implements OnInit {
   selected = output<Service>();
 
   services = signal<Service[]>([]);
+  serviceGroups = computed(() => groupServicesByCategory(this.services()));
   loading = signal<boolean>(true);
   error = signal<string | null>(null);
 

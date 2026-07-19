@@ -1,12 +1,13 @@
+import { Category } from './models/category.model';
 import { Service } from './models/service.model';
+import { compareByNamePtBr } from '../../../shared/utils/compare-by-name-pt-br';
 
 export interface ServiceCategoryGroup {
-  categoryId: string;
-  categoryName: string;
+  category: Category;
   services: Service[];
 }
 
-export function groupServicesByCategory(services: Service[]): ServiceCategoryGroup[] {
+export function groupActiveServicesByCategory(services: Service[]): ServiceCategoryGroup[] {
   const activeServices = services.filter((service) => service.active);
   const groupsByCategoryId = new Map<string, ServiceCategoryGroup>();
 
@@ -19,8 +20,11 @@ export function groupServicesByCategory(services: Service[]): ServiceCategoryGro
     }
 
     groupsByCategoryId.set(service.categoryId, {
-      categoryId: service.categoryId,
-      categoryName: service.categoryName,
+      category: {
+        id: service.categoryId,
+        storeId: service.storeId,
+        name: service.categoryName,
+      },
       services: [service],
     });
   }
@@ -28,7 +32,7 @@ export function groupServicesByCategory(services: Service[]): ServiceCategoryGro
   return Array.from(groupsByCategoryId.values())
     .map((group) => ({
       ...group,
-      services: [...group.services].sort((left, right) => left.name.localeCompare(right.name, 'pt-BR')),
+      services: [...group.services].sort((a, b) => compareByNamePtBr(a.name, b.name)),
     }))
-    .sort((left, right) => left.categoryName.localeCompare(right.categoryName, 'pt-BR'));
+    .sort((a, b) => compareByNamePtBr(a.category.name, b.category.name));
 }

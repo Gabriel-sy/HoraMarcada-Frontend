@@ -1,13 +1,14 @@
 import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { BookingApiService } from '../../services/booking-api.service';
 import { Service } from '../../models/service.model';
-import { groupServicesByCategory } from '../../group-services-by-category';
+import { groupActiveServicesByCategory } from '../../group-services-by-category';
+import { LabelledGroupComponent } from '../../../../../shared/components/labelled-group/labelled-group';
 import { SelectionCardComponent } from '../../../../../shared/components/selection-card/selection-card';
 
 @Component({
   selector: 'app-choose-service',
   standalone: true,
-  imports: [SelectionCardComponent],
+  imports: [LabelledGroupComponent, SelectionCardComponent],
   templateUrl: './choose-service.html',
   styleUrl: './choose-service.css'
 })
@@ -19,7 +20,7 @@ export class ChooseServiceComponent implements OnInit {
   selected = output<Service>();
 
   services = signal<Service[]>([]);
-  serviceGroups = computed(() => groupServicesByCategory(this.services()));
+  serviceGroups = computed(() => groupActiveServicesByCategory(this.services()));
   loading = signal<boolean>(true);
   error = signal<string | null>(null);
 

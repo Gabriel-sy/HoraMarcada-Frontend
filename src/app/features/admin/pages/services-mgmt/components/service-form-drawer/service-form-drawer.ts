@@ -6,12 +6,14 @@ import { Category } from '../../../../../booking/models/category.model';
 import { Professional } from '../../../../../booking/models/professional.model';
 import { ToastService } from '../../../../../../../shared/services/toast.service';
 import { ToggleComponent } from '../../../../../../../shared/components/toggle/toggle';
+import { SelectComponent } from '../../../../../../../shared/components/select/select';
 import { AdminApiService } from '../../../../services/admin-api.service';
+import { compareByNamePtBr } from '../../../../../../../shared/utils/compare-by-name-pt-br';
 
 @Component({
   selector: 'app-service-form-drawer',
   standalone: true,
-  imports: [NgClass, FormsModule, ToggleComponent],
+  imports: [NgClass, FormsModule, ToggleComponent, SelectComponent],
   templateUrl: './service-form-drawer.html',
   host: {
     class: 'fixed inset-0 z-100 overflow-hidden transition-[visibility] duration-300 invisible pointer-events-none delay-300',
@@ -112,7 +114,7 @@ export class ServiceFormDrawerComponent {
     this.creatingCategory.set(true);
     this.adminApiService.createCategory(storeId, name).subscribe({
       next: (category) => {
-        const updated = [...this.categories(), category].sort((a, b) => a.name.localeCompare(b.name));
+        const updated = [...this.categories(), category].sort((a, b) => compareByNamePtBr(a.name, b.name));
         this.categoriesChanged.emit(updated);
         this.formCategoryId.set(category.id);
         this.showCreateCategory.set(false);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Service } from './models/service.model';
-import { groupServicesByCategory } from './group-services-by-category';
+import { groupActiveServicesByCategory } from './group-services-by-category';
 
 function makeService(overrides: Partial<Service> = {}): Service {
   return {
@@ -16,7 +16,7 @@ function makeService(overrides: Partial<Service> = {}): Service {
   };
 }
 
-describe('groupServicesByCategory', () => {
+describe('groupActiveServicesByCategory', () => {
   it('sorts category names alphabetically', () => {
     const services = [
       makeService({ id: '1', categoryId: 'c-unhas', categoryName: 'Unhas', name: 'Manicure' }),
@@ -24,9 +24,9 @@ describe('groupServicesByCategory', () => {
       makeService({ id: '3', categoryId: 'c-barba', categoryName: 'Barba', name: 'Barba' }),
     ];
 
-    const groups = groupServicesByCategory(services);
+    const groups = groupActiveServicesByCategory(services);
 
-    expect(groups.map((group) => group.categoryName)).toEqual(['Barba', 'Cabelo', 'Unhas']);
+    expect(groups.map((group) => group.category.name)).toEqual(['Barba', 'Cabelo', 'Unhas']);
   });
 
   it('sorts services alphabetically within each category', () => {
@@ -36,32 +36,34 @@ describe('groupServicesByCategory', () => {
       makeService({ id: '3', categoryId: 'c-cabelo', categoryName: 'Cabelo', name: 'Escova' }),
     ];
 
-    const groups = groupServicesByCategory(services);
+    const groups = groupActiveServicesByCategory(services);
 
     expect(groups).toHaveLength(1);
     expect(groups[0].services.map((service) => service.name)).toEqual(['Corte', 'Escova', 'Hidratação']);
   });
 
-  it('omits categories with no active services', () => {
-    const services = [
-      makeService({ id: '1', categoryId: 'c-cabelo', categoryName: 'Cabelo', name: 'Corte', active: true }),
-      makeService({ id: '2', categoryId: 'c-unhas', categoryName: 'Unhas', name: 'Manicure', active: false }),
-    ];
-
-    const groups = groupServicesByCategory(services);
-
-    expect(groups.map((group) => group.categoryName)).toEqual(['Cabelo']);
-  });
-
-  it('excludes inactive services from grouped results', () => {
+  it('omits inactive services and categories with no active services', () => {
     const services = [
       makeService({ id: '1', categoryId: 'c-cabelo', categoryName: 'Cabelo', name: 'Corte', active: true }),
       makeService({ id: '2', categoryId: 'c-cabelo', categoryName: 'Cabelo', name: 'Escova', active: false }),
+      makeService({ id: '3', categoryId: 'c-unhas', categoryName: 'Unhas', name: 'Manicure', active: false }),
     ];
 
-    const groups = groupServicesByCategory(services);
+    const groups = groupActiveServicesByCategory(services);
+
+    expect(groups.map((group) => group.category.name)).toEqual(['Cabelo']);
+    expect(groups[0].services.map((service) => service.name)).toEqual(['Corte']);
+  });
+
+  it('keeps the first category name when services in the same category disagree', () => {
+    const services = [
+      makeService({ id: '1', categoryId: 'c-cabelo', categoryName: 'Cabelo', name: 'Corte' }),
+      makeService({ id: '2', categoryId: 'c-cabelo', categoryName: 'Cabeleireiro', name: 'Escova' }),
+    ];
+
+    const groups = groupActiveServicesByCategory(services);
 
     expect(groups).toHaveLength(1);
-    expect(groups[0].services.map((service) => service.name)).toEqual(['Corte']);
+    expect(groups[0].category.name).toBe('Cabelo');
   });
 });

@@ -1,5 +1,6 @@
 import { Component, computed, inject, input, output, signal, effect, OnDestroy } from '@angular/core';
 import { BookingApiService } from '../../services/booking-api.service';
+import { LabelledGroupComponent } from '../../../../../shared/components/labelled-group/labelled-group';
 import { forkJoin, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -20,6 +21,7 @@ interface PeriodGroup {
 @Component({
   selector: 'app-choose-time',
   standalone: true,
+  imports: [LabelledGroupComponent],
   templateUrl: './choose-time.html',
   styleUrl: './choose-time.css'
 })

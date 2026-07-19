@@ -9,6 +9,7 @@ import { AppointmentStatus } from '../../booking/models/appointment-status.enum'
 import { TimeBlock } from '../../booking/models/time-block.model';
 import { StoreStatisticsResponse } from '../models/statistics.model';
 import { AdminApiService } from './admin-api.service';
+import { compareByNamePtBr } from '../../../../shared/utils/compare-by-name-pt-br';
 import { CustomerListDto, PagedResult } from '../../booking/models/customer.model';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
@@ -99,6 +100,7 @@ export class AdminStateService {
     }
     this._loadingServices.set(true);
     return this.apiService.getStoreServices(storeId, false).pipe(
+      map(services => services.map(service => this.normalizeService(service))),
       tap({
         next: (services) => {
           this._services.set(services);
@@ -121,7 +123,7 @@ export class AdminStateService {
             if (a.active !== b.active) {
               return a.active ? -1 : 1;
             }
-            return a.name.localeCompare(b.name);
+            return compareByNamePtBr(a.name, b.name);
           });
           this._professionals.set(sorted);
           this._loadingProfessionals.set(false);
@@ -236,6 +238,14 @@ export class AdminStateService {
 
   refreshProfessionals(storeId: string): Observable<Professional[]> {
     return this.loadProfessionals(storeId, true);
+  }
+
+  private normalizeService(service: Service & { CategoryId?: string; CategoryName?: string }): Service {
+    return {
+      ...service,
+      categoryId: service.categoryId ?? service.CategoryId ?? '',
+      categoryName: service.categoryName ?? service.CategoryName ?? ''
+    };
   }
 
   private isSameDay(date1: Date, date2: Date): boolean {

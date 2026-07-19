@@ -1,6 +1,7 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SelectComponent } from '../../../../../../../shared/components/select/select';
+import { ToggleComponent } from '../../../../../../../shared/components/toggle/toggle';
 
 interface DayHoursConfig {
   active: boolean;
@@ -15,7 +16,7 @@ interface DayHoursConfig {
 @Component({
   selector: 'app-weekly-schedule-config',
   standalone: true,
-  imports: [FormsModule, SelectComponent],
+  imports: [FormsModule, SelectComponent, ToggleComponent],
   styleUrl: './weekly-schedule-config.css',
   templateUrl: './weekly-schedule-config.html'
 })
@@ -39,6 +40,20 @@ export class WeeklyScheduleConfigComponent {
     'Sexta-feira',
     'Sábado'
   ];
+
+  expandedDayIndex = signal<number | null>(null);
+
+  isExpanded(dayIndex: number): boolean {
+    return this.expandedDayIndex() === dayIndex;
+  }
+
+  toggleExpand(dayIndex: number): void {
+    this.expandedDayIndex.update(current => (current === dayIndex ? null : dayIndex));
+  }
+
+  collapse(): void {
+    this.expandedDayIndex.set(null);
+  }
 
   updateDayActive(dayIndex: number, active: boolean): void {
     const hours = [...this.weeklyHours()];

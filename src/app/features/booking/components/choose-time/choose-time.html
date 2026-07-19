@@ -59,15 +59,22 @@
     </div>
   } @else {
     @if (slots().length > 0) {
-      <div class="grid grid-cols-4 gap-2">
-        @for (slot of slots(); track slot) {
-          <button
-            type="button"
-            (click)="selectTime(slot)"
-            [class]="'py-3.5 border text-sm font-bold rounded-lg text-center cursor-pointer transition-all duration-200 ' +
-                     (selectedTime() === slot ? 'border-text-primary bg-accent-light text-text-primary' : 'border-border-light hover:border-text-primary bg-white text-text-primary')">
-            {{ formatTime(slot) }}
-          </button>
+      <div class="space-y-6">
+        @for (group of periodGroups(); track group.key) {
+          <div>
+            <h3 class="text-sm text-text-secondary mb-2">{{ group.label }}</h3>
+            <div class="grid grid-cols-4 gap-2">
+              @for (slot of group.slots; track slot) {
+                <button
+                  type="button"
+                  (click)="selectTime(slot)"
+                  [class]="'py-3.5 border text-sm font-bold rounded-lg text-center cursor-pointer transition-all duration-200 ' +
+                           (selectedTime() === slot ? 'border-text-primary bg-accent-light text-text-primary' : 'border-border-light hover:border-text-primary bg-white text-text-primary')">
+                  {{ formatTime(slot) }}
+                </button>
+              }
+            </div>
+          </div>
         }
       </div>
     } @else {

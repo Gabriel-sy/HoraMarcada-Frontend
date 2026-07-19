@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal, effect, OnDestroy } from '@angular/core';
+import { Component, computed, inject, input, output, signal, effect, OnDestroy } from '@angular/core';
 import { BookingApiService } from '../../services/booking-api.service';
 import { forkJoin, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -9,6 +9,12 @@ interface DateOption {
   dayNumber: string;
   monthName: string;
   fullDate: Date;
+}
+
+interface PeriodGroup {
+  key: string;
+  label: string;
+  slots: string[];
 }
 
 @Component({
@@ -34,6 +40,27 @@ export class ChooseTimeComponent implements OnDestroy {
   loading = signal<boolean>(true);
   error = signal<string | null>(null);
   showLeftArrow = signal<boolean>(false);
+
+  periodGroups = computed<PeriodGroup[]>(() => {
+    const groups: PeriodGroup[] = [
+      { key: 'manha', label: 'Manhã', slots: [] },
+      { key: 'tarde', label: 'Tarde', slots: [] },
+      { key: 'noite', label: 'Noite', slots: [] },
+    ];
+
+    for (const slot of this.slots()) {
+      const hour = new Date(slot).getHours();
+      if (hour < 12) {
+        groups[0].slots.push(slot);
+      } else if (hour < 18) {
+        groups[1].slots.push(slot);
+      } else {
+        groups[2].slots.push(slot);
+      }
+    }
+
+    return groups.filter(group => group.slots.length > 0);
+  });
 
   constructor() {
     const dates = this.generateDateOptions();
